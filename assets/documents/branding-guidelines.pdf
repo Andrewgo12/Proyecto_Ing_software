@@ -1,0 +1,339 @@
+# Guía de Marca - Sistema de Inventario PYMES
+## Manual de Identidad Visual y Branding
+
+---
+
+## 📋 Información del Documento
+
+**Título:** Guía de Marca - Sistema de Inventario PYMES  
+**Versión:** 1.0  
+**Fecha:** Enero 2024  
+**Aprobado por:** Equipo de Diseño y Marketing  
+
+---
+
+## 🎯 Introducción
+
+Esta guía establece los estándares visuales y de comunicación para el Sistema de Inventario PYMES. Su objetivo es garantizar la consistencia y coherencia de la marca en todos los puntos de contacto con usuarios y stakeholders.
+
+### Objetivos de la Marca
+- **Confiabilidad:** Transmitir seguridad y estabilidad
+- **Profesionalismo:** Proyectar competencia técnica
+- **Accesibilidad:** Ser comprensible para PYMES
+- **Innovación:** Mostrar modernidad tecnológica
+
+---
+
+## 🎨 Identidad Visual
+
+### Logo Principal
+
+#### Construcción del Logo
+- **Símbolo:** Caja de inventario con gráfico de barras
+- **Tipografía:** Sans-serif moderna y legible
+- **Colores:** Azul corporativo (#2C3E50) y acentos coloridos
+- **Proporciones:** Ratio 10:3 (ancho:alto)
+
+#### Variaciones del Logo
+1. **Logo Completo:** Símbolo + texto "INVENTARIO PYMES"
+2. **Logo Horizontal:** Versión extendida para headers
+3. **Logo Vertical:** Para espacios reducidos
+4. **Isotipo:** Solo el símbolo para favicons y apps
+5. **Logo Monocromático:** Para impresiones en una tinta
+
+#### Área de Protección
+- **Mínimo:** 1x la altura de la letra "I" en todos los lados
+- **Recomendado:** 2x la altura para mayor impacto visual
+
+#### Tamaños Mínimos
+- **Digital:** 120px de ancho mínimo
+- **Impreso:** 25mm de ancho mínimo
+- **Favicon:** 16x16px (isotipo únicamente)
+
+### Paleta de Colores
+
+#### Colores Primarios
+```
+Azul Corporativo
+HEX: #2C3E50
+RGB: 44, 62, 80
+CMYK: 45, 23, 0, 69
+Pantone: 5395 C
+
+Azul Secundario
+HEX: #3498DB
+RGB: 52, 152, 219
+CMYK: 76, 31, 0, 14
+Pantone: 2925 C
+```
+
+#### Colores de Acento
+```
+Verde Éxito
+HEX: #27AE60
+RGB: 39, 174, 96
+CMYK: 78, 0, 45, 32
+
+Rojo Alerta
+HEX: #E74C3C
+RGB: 231, 76, 60
+CMYK: 0, 67, 74, 9
+
+Naranja Advertencia
+HEX: #F39C12
+RGB: 243, 156, 18
+CMYK: 0, 36, 93, 5
+
+Morado Info
+HEX: #9B59B6
+RGB: 155, 89, 182
+CMYK: 15, 51, 0, 29
+```
+
+#### Colores Neutros
+```
+Gris Oscuro
+HEX: #34495E
+RGB: 52, 73, 94
+
+Gris Medio
+HEX: #7F8C8D
+RGB: 127, 140, 141
+
+Gris Claro
+HEX: #BDC3C7
+RGB: 189, 195, 199
+
+Gris Muy Claro
+HEX: #ECF0F1
+RGB: 236, 240, 241
+
+Blanco
+HEX: #FFFFFF
+RGB: 255, 255, 255
+
+Negro
+HEX: #2C3E50
+RGB: 44, 62, 80
+```
+
+### Tipografía
+
+#### Fuente Principal: Inter
+- **Uso:** Textos generales, interfaces, botones
+- **Pesos disponibles:** 100, 200, 300, 400, 500, 600, 700, 800, 900
+- **Características:** Moderna, legible, optimizada para pantallas
+
+#### Fuente Secundaria: JetBrains Mono
+- **Uso:** Códigos, números de serie, datos técnicos
+- **Pesos disponibles:** 400, 700
+- **Características:** Monoespaciada, alta legibilidad
+
+#### Jerarquía Tipográfica
+```
+H1 - Títulos Principales
+Tamaño: 36px / 2.25rem
+Peso: 700 (Bold)
+Espaciado: -0.025em
+
+H2 - Títulos Secundarios
+Tamaño: 30px / 1.875rem
+Peso: 600 (Semibold)
+Espaciado: -0.025em
+
+H3 - Subtítulos
+Tamaño: 24px / 1.5rem
+Peso: 600 (Semibold)
+Espaciado: 0
+
+H4 - Títulos de Sección
+Tamaño: 20px / 1.25rem
+Peso: 500 (Medium)
+Espaciado: 0
+
+Body - Texto Principal
+Tamaño: 16px / 1rem
+Peso: 400 (Regular)
+Espaciado: 0
+Altura de línea: 1.5
+
+Small - Texto Pequeño
+Tamaño: 14px / 0.875rem
+Peso: 400 (Regular)
+Espaciado: 0
+
+Caption - Leyendas
+Tamaño: 12px / 0.75rem
+Peso: 400 (Regular)
+Espaciado: 0.05em
+```
+
+---
+
+## 🖼️ Elementos Gráficos
+
+### Iconografía
+
+#### Estilo de Iconos
+- **Tipo:** Outline (contorno)
+- **Grosor de línea:** 2px
+- **Esquinas:** Redondeadas (2px radius)
+- **Tamaño estándar:** 24x24px
+- **Colores:** Monocromáticos según contexto
+
+#### Categorías de Iconos
+1. **Navegación:** Menú, flechas, cerrar
+2. **Acciones:** Agregar, editar, eliminar, guardar
+3. **Estados:** Éxito, error, advertencia, información
+4. **Inventario:** Productos, stock, movimientos, alertas
+5. **Usuarios:** Perfil, configuración, logout
+
+### Ilustraciones
+
+#### Estilo Visual
+- **Tipo:** Flat design con sombras sutiles
+- **Paleta:** Colores de marca + neutros
+- **Elementos:** Geométricos y minimalistas
+- **Uso:** Páginas vacías, onboarding, errores
+
+### Fotografía
+
+#### Criterios de Selección
+- **Estilo:** Profesional, limpio, bien iluminado
+- **Sujetos:** Personas trabajando, almacenes, productos
+- **Colores:** Tonos que complementen la paleta de marca
+- **Calidad:** Alta resolución, mínimo 1920x1080px
+
+---
+
+## 📱 Aplicaciones de Marca
+
+### Interfaz de Usuario
+
+#### Principios de Diseño
+1. **Claridad:** Información fácil de entender
+2. **Consistencia:** Elementos uniformes en toda la aplicación
+3. **Eficiencia:** Flujos de trabajo optimizados
+4. **Accesibilidad:** Cumplimiento WCAG 2.1 AA
+
+#### Componentes UI
+- **Botones:** Esquinas redondeadas (6px), estados hover/active
+- **Formularios:** Campos con bordes sutiles, labels claros
+- **Tarjetas:** Sombras suaves, padding consistente
+- **Navegación:** Breadcrumbs, menús desplegables
+
+### Comunicaciones
+
+#### Tono de Voz
+- **Profesional pero accesible**
+- **Claro y directo**
+- **Útil y orientado a soluciones**
+- **Empático con las necesidades de las PYMES**
+
+#### Mensajes Clave
+- "Controla tu inventario con precisión"
+- "Tecnología simple para empresas inteligentes"
+- "Tu socio en la gestión de inventario"
+- "Eficiencia que impulsa tu crecimiento"
+
+### Marketing y Publicidad
+
+#### Elementos Visuales
+- **Layouts:** Limpios, con mucho espacio en blanco
+- **Imágenes:** Personas reales usando el sistema
+- **Gráficos:** Datos e infografías claras
+- **CTA:** Botones prominentes con colores de acento
+
+---
+
+## 📏 Especificaciones Técnicas
+
+### Formatos de Archivo
+
+#### Logo
+- **Vector:** .SVG (web), .AI (edición)
+- **Raster:** .PNG (transparencia), .JPG (fondos sólidos)
+- **Resoluciones:** 1x, 2x, 3x para diferentes densidades
+
+#### Iconos
+- **Formato principal:** .SVG
+- **Fallback:** .PNG en múltiples tamaños
+- **Sprite:** SVG sprite para optimización web
+
+### Implementación Web
+
+#### CSS Variables
+```css
+:root {
+  /* Colores */
+  --color-primary: #2C3E50;
+  --color-secondary: #3498DB;
+  --color-success: #27AE60;
+  --color-danger: #E74C3C;
+  --color-warning: #F39C12;
+  --color-info: #9B59B6;
+  
+  /* Tipografía */
+  --font-family-primary: 'Inter', sans-serif;
+  --font-family-mono: 'JetBrains Mono', monospace;
+  
+  /* Espaciado */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  
+  /* Bordes */
+  --border-radius-sm: 4px;
+  --border-radius-md: 6px;
+  --border-radius-lg: 8px;
+  
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+```
+
+---
+
+## ✅ Lista de Verificación
+
+### Antes de Publicar
+- [ ] Logo en tamaño y posición correctos
+- [ ] Colores según paleta oficial
+- [ ] Tipografía consistente con jerarquía
+- [ ] Iconos del conjunto oficial
+- [ ] Contraste mínimo 4.5:1 para texto
+- [ ] Responsive en todos los dispositivos
+- [ ] Carga rápida de assets
+- [ ] Alt text en imágenes
+
+### Revisión de Calidad
+- [ ] Ortografía y gramática correctas
+- [ ] Tono de voz apropiado
+- [ ] Mensajes alineados con marca
+- [ ] Experiencia de usuario fluida
+- [ ] Accesibilidad verificada
+- [ ] Compatibilidad cross-browser
+
+---
+
+## 📞 Contacto y Aprobaciones
+
+### Equipo de Marca
+- **Director de Diseño:** design@inventario-pymes.com
+- **Marketing:** marketing@inventario-pymes.com
+- **Desarrollo:** dev@inventario-pymes.com
+
+### Proceso de Aprobación
+1. **Diseño inicial:** Equipo de diseño
+2. **Revisión técnica:** Equipo de desarrollo
+3. **Aprobación final:** Director de producto
+4. **Implementación:** Equipos correspondientes
+
+---
+
+**Documento confidencial - Solo para uso interno**  
+**© 2024 Sistema de Inventario PYMES. Todos los derechos reservados.**

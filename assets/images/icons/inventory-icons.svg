@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Definir símbolos reutilizables -->
+  <defs>
+    <!-- Icono de Producto -->
+    <g id="product-icon">
+      <rect x="2" y="2" width="20" height="20" rx="2" fill="#3498DB" stroke="#2C3E50" stroke-width="1"/>
+      <circle cx="12" cy="8" r="2" fill="#FFFFFF"/>
+      <rect x="6" y="12" width="12" height="2" fill="#FFFFFF"/>
+      <rect x="6" y="16" width="8" height="2" fill="#FFFFFF"/>
+    </g>
+    
+    <!-- Icono de Stock -->
+    <g id="stock-icon">
+      <rect x="2" y="6" width="20" height="16" rx="1" fill="#27AE60" stroke="#2C3E50" stroke-width="1"/>
+      <rect x="4" y="4" width="16" height="4" rx="1" fill="#E74C3C"/>
+      <line x1="6" y1="10" x2="18" y2="10" stroke="#FFFFFF" stroke-width="1"/>
+      <line x1="6" y1="14" x2="14" y2="14" stroke="#FFFFFF" stroke-width="1"/>
+      <line x1="6" y1="18" x2="16" y2="18" stroke="#FFFFFF" stroke-width="1"/>
+    </g>
+    
+    <!-- Icono de Movimiento -->
+    <g id="movement-icon">
+      <circle cx="12" cy="12" r="10" fill="#F39C12" stroke="#2C3E50" stroke-width="1"/>
+      <path d="M8 12 L12 8 L16 12 L12 16 Z" fill="#FFFFFF"/>
+      <circle cx="12" cy="12" r="2" fill="#2C3E50"/>
+    </g>
+    
+    <!-- Icono de Alerta -->
+    <g id="alert-icon">
+      <path d="M12 2 L22 20 L2 20 Z" fill="#E74C3C" stroke="#2C3E50" stroke-width="1"/>
+      <line x1="12" y1="8" x2="12" y2="14" stroke="#FFFFFF" stroke-width="2"/>
+      <circle cx="12" cy="17" r="1" fill="#FFFFFF"/>
+    </g>
+    
+    <!-- Icono de Reporte -->
+    <g id="report-icon">
+      <rect x="4" y="2" width="16" height="20" rx="1" fill="#9B59B6" stroke="#2C3E50" stroke-width="1"/>
+      <rect x="6" y="6" width="4" height="8" fill="#FFFFFF"/>
+      <rect x="11" y="10" width="4" height="4" fill="#FFFFFF"/>
+      <rect x="16" y="8" width="2" height="6" fill="#FFFFFF"/>
+    </g>
+    
+    <!-- Icono de Usuario -->
+    <g id="user-icon">
+      <circle cx="12" cy="8" r="4" fill="#34495E" stroke="#2C3E50" stroke-width="1"/>
+      <path d="M4 20 C4 16 7.5 14 12 14 C16.5 14 20 16 20 20 L4 20 Z" fill="#34495E"/>
+    </g>
+    
+    <!-- Icono de Configuración -->
+    <g id="settings-icon">
+      <circle cx="12" cy="12" r="8" fill="#7F8C8D" stroke="#2C3E50" stroke-width="1"/>
+      <circle cx="12" cy="12" r="3" fill="#FFFFFF"/>
+      <rect x="11" y="2" width="2" height="4" fill="#7F8C8D"/>
+      <rect x="11" y="18" width="2" height="4" fill="#7F8C8D"/>
+      <rect x="2" y="11" width="4" height="2" fill="#7F8C8D"/>
+      <rect x="18" y="11" width="4" height="2" fill="#7F8C8D"/>
+    </g>
+    
+    <!-- Icono de Búsqueda -->
+    <g id="search-icon">
+      <circle cx="10" cy="10" r="6" fill="none" stroke="#2C3E50" stroke-width="2"/>
+      <line x1="16" y1="16" x2="20" y2="20" stroke="#2C3E50" stroke-width="2"/>
+    </g>
+  </defs>
+  
+  <!-- Título -->
+  <text x="200" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#2C3E50">
+    Iconos del Sistema de Inventario PYMES
+  </text>
+  
+  <!-- Fila 1 -->
+  <g transform="translate(30, 40)">
+    <use href="#product-icon"/>
+    <text x="12" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2C3E50">Producto</text>
+  </g>
+  
+  <g transform="translate(100, 40)">
+    <use href="#stock-icon"/>
+    <text x="12" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2C3E50">Stock</text>
+  </g>
+  
+  <g transform="translate(170, 40)">
+    <use href="#movement-icon"/>
+    <text x="12" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2C3E50">Movimiento</text>
+  </g>
+  
+  <g transform="translate(240, 40)">
+    <use href="#alert-icon"/>
+    <text x="12" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2C3E50">Alerta</text>
+  </g>
+  
+  <!-- Fila 2 -->
+  <g transform="translate(30, 120)">
+    <use href="#report-icon"/>
+    <text x="12" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2C3E50">Reporte</text>
+  </g>
+  
+  <g transform="translate(100, 120)">
+    <use href="#user-icon"/>
+    <text x="12" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2C3E50">Usuario</text>
+  </g>
+  
+  <g transform="translate(170, 120)">
+    <use href="#settings-icon"/>
+    <text x="12" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2C3E50">Configuración</text>
+  </g>
+  
+  <g transform="translate(240, 120)">
+    <use href="#search-icon"/>
+    <text x="12" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2C3E50">Búsqueda</text>
+  </g>
+  
+  <!-- Paleta de colores -->
+  <text x="30" y="220" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#2C3E50">
+    Paleta de Colores:
+  </text>
+  
+  <rect x="30" y="230" width="20" height="20" fill="#2C3E50"/>
+  <text x="55" y="245" font-family="Arial, sans-serif" font-size="10" fill="#2C3E50">#2C3E50 - Primario</text>
+  
+  <rect x="30" y="255" width="20" height="20" fill="#3498DB"/>
+  <text x="55" y="270" font-family="Arial, sans-serif" font-size="10" fill="#2C3E50">#3498DB - Secundario</text>
+  
+  <rect x="150" y="230" width="20" height="20" fill="#27AE60"/>
+  <text x="175" y="245" font-family="Arial, sans-serif" font-size="10" fill="#2C3E50">#27AE60 - Éxito</text>
+  
+  <rect x="150" y="255" width="20" height="20" fill="#E74C3C"/>
+  <text x="175" y="270" font-family="Arial, sans-serif" font-size="10" fill="#2C3E50">#E74C3C - Peligro</text>
+  
+  <rect x="270" y="230" width="20" height="20" fill="#F39C12"/>
+  <text x="295" y="245" font-family="Arial, sans-serif" font-size="10" fill="#2C3E50">#F39C12 - Advertencia</text>
+  
+  <rect x="270" y="255" width="20" height="20" fill="#9B59B6"/>
+  <text x="295" y="270" font-family="Arial, sans-serif" font-size="10" fill="#2C3E50">#9B59B6 - Info</text>
+</svg>

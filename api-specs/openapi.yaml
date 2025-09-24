@@ -1,0 +1,725 @@
+openapi: 3.0.3
+info:
+  title: Sistema de Inventario PYMES API
+  description: API RESTful para gestión de inventario en pequeñas y medianas empresas
+  version: 1.0.0
+  contact:
+    name: Equipo de Desarrollo
+    email: dev@inventario-pymes.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.inventario-pymes.com/v1
+    description: Servidor de producción
+  - url: https://staging-api.inventario-pymes.com/v1
+    description: Servidor de staging
+  - url: http://localhost:3000/api/v1
+    description: Servidor de desarrollo
+
+security:
+  - BearerAuth: []
+
+paths:
+  # Authentication Endpoints
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Iniciar sesión
+      description: Autentica un usuario y devuelve tokens JWT
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Renovar token
+      description: Renueva el access token usando el refresh token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token renovado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  # Products Endpoints
+  /products:
+    get:
+      tags:
+        - Products
+      summary: Listar productos
+      description: Obtiene lista paginada de productos
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de productos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductsResponse'
+
+    post:
+      tags:
+        - Products
+      summary: Crear producto
+      description: Crea un nuevo producto en el catálogo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductRequest'
+      responses:
+        '201':
+          description: Producto creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /products/{id}:
+    get:
+      tags:
+        - Products
+      summary: Obtener producto
+      description: Obtiene un producto específico por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Producto encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Products
+      summary: Actualizar producto
+      description: Actualiza un producto existente
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductRequest'
+      responses:
+        '200':
+          description: Producto actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+
+    delete:
+      tags:
+        - Products
+      summary: Eliminar producto
+      description: Elimina un producto (soft delete)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Producto eliminado exitosamente
+
+  # Inventory Endpoints
+  /inventory/stock:
+    get:
+      tags:
+        - Inventory
+      summary: Consultar stock
+      description: Obtiene niveles de stock por producto y ubicación
+      parameters:
+        - name: productId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: locationId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Niveles de stock
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StockLevel'
+
+  /inventory/movements:
+    get:
+      tags:
+        - Inventory
+      summary: Historial de movimientos
+      description: Obtiene historial de movimientos de inventario
+      parameters:
+        - name: productId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Lista de movimientos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InventoryMovement'
+
+    post:
+      tags:
+        - Inventory
+      summary: Registrar movimiento
+      description: Registra un nuevo movimiento de inventario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMovementRequest'
+      responses:
+        '201':
+          description: Movimiento registrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryMovement'
+
+  # Reports Endpoints
+  /reports/stock-summary:
+    get:
+      tags:
+        - Reports
+      summary: Reporte resumen de stock
+      description: Genera reporte resumen del estado actual del inventario
+      parameters:
+        - name: locationId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Reporte de stock
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockSummaryReport'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # Authentication Schemas
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: admin@empresa.com
+        password:
+          type: string
+          format: password
+          example: password123
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        refreshToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        expiresIn:
+          type: integer
+          example: 3600
+        user:
+          $ref: '#/components/schemas/User'
+
+    # User Schema
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        email:
+          type: string
+          format: email
+          example: admin@empresa.com
+        firstName:
+          type: string
+          example: Juan
+        lastName:
+          type: string
+          example: Pérez
+        role:
+          type: string
+          enum: [admin, manager, warehouse, sales]
+          example: admin
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+
+    # Product Schemas
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sku:
+          type: string
+          example: PROD-001
+        name:
+          type: string
+          example: Laptop Dell Inspiron
+        description:
+          type: string
+          example: Laptop para uso empresarial
+        categoryId:
+          type: string
+          format: uuid
+        category:
+          $ref: '#/components/schemas/Category'
+        unitPrice:
+          type: number
+          format: decimal
+          example: 1500000.00
+        unitOfMeasure:
+          type: string
+          example: unidad
+        barcode:
+          type: string
+          example: 7891234567890
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateProductRequest:
+      type: object
+      required:
+        - sku
+        - name
+        - categoryId
+        - unitPrice
+      properties:
+        sku:
+          type: string
+          example: PROD-001
+        name:
+          type: string
+          example: Laptop Dell Inspiron
+        description:
+          type: string
+          example: Laptop para uso empresarial
+        categoryId:
+          type: string
+          format: uuid
+        unitPrice:
+          type: number
+          format: decimal
+          example: 1500000.00
+        unitOfMeasure:
+          type: string
+          example: unidad
+        barcode:
+          type: string
+          example: 7891234567890
+
+    UpdateProductRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        categoryId:
+          type: string
+          format: uuid
+        unitPrice:
+          type: number
+          format: decimal
+        unitOfMeasure:
+          type: string
+        barcode:
+          type: string
+
+    ProductsResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    # Category Schema
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Electrónicos
+        description:
+          type: string
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+
+    # Inventory Schemas
+    StockLevel:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        product:
+          $ref: '#/components/schemas/Product'
+        locationId:
+          type: string
+          format: uuid
+        location:
+          $ref: '#/components/schemas/Location'
+        quantity:
+          type: number
+          format: decimal
+          example: 50.0
+        reservedQuantity:
+          type: number
+          format: decimal
+          example: 5.0
+        minStock:
+          type: number
+          format: decimal
+          example: 10.0
+        maxStock:
+          type: number
+          format: decimal
+          example: 100.0
+        lastUpdated:
+          type: string
+          format: date-time
+
+    InventoryMovement:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        product:
+          $ref: '#/components/schemas/Product'
+        locationId:
+          type: string
+          format: uuid
+        location:
+          $ref: '#/components/schemas/Location'
+        movementType:
+          type: string
+          enum: [in, out, adjustment, transfer]
+          example: in
+        quantity:
+          type: number
+          format: decimal
+          example: 10.0
+        referenceNumber:
+          type: string
+          example: PO-2024-001
+        notes:
+          type: string
+          example: Recepción de mercancía
+        userId:
+          type: string
+          format: uuid
+        user:
+          $ref: '#/components/schemas/User'
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateMovementRequest:
+      type: object
+      required:
+        - productId
+        - locationId
+        - movementType
+        - quantity
+      properties:
+        productId:
+          type: string
+          format: uuid
+        locationId:
+          type: string
+          format: uuid
+        movementType:
+          type: string
+          enum: [in, out, adjustment, transfer]
+        quantity:
+          type: number
+          format: decimal
+        referenceNumber:
+          type: string
+        notes:
+          type: string
+
+    # Location Schema
+    Location:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Bodega Principal
+        type:
+          type: string
+          enum: [warehouse, store, transit]
+          example: warehouse
+        address:
+          type: string
+          example: Calle 123 #45-67
+        isActive:
+          type: boolean
+          example: true
+
+    # Reports Schemas
+    StockSummaryReport:
+      type: object
+      properties:
+        totalProducts:
+          type: integer
+          example: 150
+        totalValue:
+          type: number
+          format: decimal
+          example: 50000000.00
+        lowStockProducts:
+          type: integer
+          example: 12
+        outOfStockProducts:
+          type: integer
+          example: 3
+        categories:
+          type: array
+          items:
+            type: object
+            properties:
+              categoryName:
+                type: string
+              productCount:
+                type: integer
+              totalValue:
+                type: number
+                format: decimal
+
+    # Common Schemas
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 150
+        totalPages:
+          type: integer
+          example: 8
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Validation failed
+        message:
+          type: string
+          example: El campo 'name' es requerido
+        code:
+          type: string
+          example: VALIDATION_ERROR
+        details:
+          type: object
+
+  responses:
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Not Found
+            message: El recurso solicitado no existe
+            code: NOT_FOUND
+
+    Unauthorized:
+      description: No autorizado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Unauthorized
+            message: Token de acceso inválido o expirado
+            code: UNAUTHORIZED
+
+    ValidationError:
+      description: Error de validación
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Validation Error
+            message: Los datos enviados no son válidos
+            code: VALIDATION_ERROR
+            details:
+              name: El campo name es requerido
+              email: El formato del email es inválido
+
+    ServerError:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Internal Server Error
+            message: Ha ocurrido un error interno
+            code: INTERNAL_ERROR
+
+tags:
+  - name: Authentication
+    description: Endpoints de autenticación y autorización
+  - name: Products
+    description: Gestión del catálogo de productos
+  - name: Inventory
+    description: Control de inventario y movimientos
+  - name: Reports
+    description: Generación de reportes y analytics

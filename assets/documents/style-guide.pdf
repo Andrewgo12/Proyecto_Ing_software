@@ -1,0 +1,692 @@
+# Guía de Estilo - Sistema de Inventario PYMES
+## Manual de Diseño y Desarrollo Frontend
+
+---
+
+## 📋 Información del Documento
+
+**Título:** Guía de Estilo - Sistema de Inventario PYMES  
+**Versión:** 1.0  
+**Fecha:** Enero 2024  
+**Audiencia:** Desarrolladores Frontend, Diseñadores UI/UX  
+
+---
+
+## 🎨 Sistema de Diseño
+
+### Principios de Diseño
+
+#### 1. Claridad
+- **Jerarquía visual clara** con tipografía y espaciado consistente
+- **Contenido esencial** siempre visible y accesible
+- **Navegación intuitiva** que guíe al usuario naturalmente
+
+#### 2. Consistencia
+- **Patrones reutilizables** en toda la aplicación
+- **Comportamientos predecibles** de componentes
+- **Terminología uniforme** en labels y mensajes
+
+#### 3. Eficiencia
+- **Flujos optimizados** para tareas frecuentes
+- **Shortcuts y atajos** para usuarios avanzados
+- **Feedback inmediato** en acciones del usuario
+
+#### 4. Accesibilidad
+- **Contraste mínimo 4.5:1** para texto normal
+- **Contraste mínimo 3:1** para texto grande
+- **Navegación por teclado** completa
+- **Screen readers** compatibles
+
+---
+
+## 🎯 Tokens de Diseño
+
+### Colores
+
+#### Paleta Primaria
+```css
+/* Azules Corporativos */
+--blue-50: #EBF8FF;
+--blue-100: #BEE3F8;
+--blue-200: #90CDF4;
+--blue-300: #63B3ED;
+--blue-400: #4299E1;
+--blue-500: #3182CE;  /* Principal */
+--blue-600: #2B77CB;
+--blue-700: #2C5AA0;
+--blue-800: #2A4365;
+--blue-900: #1A365D;
+
+/* Grises Neutros */
+--gray-50: #F7FAFC;
+--gray-100: #EDF2F7;
+--gray-200: #E2E8F0;
+--gray-300: #CBD5E0;
+--gray-400: #A0AEC0;
+--gray-500: #718096;
+--gray-600: #4A5568;
+--gray-700: #2D3748;
+--gray-800: #1A202C;
+--gray-900: #171923;
+```
+
+#### Paleta Semántica
+```css
+/* Estados de Éxito */
+--success-50: #F0FFF4;
+--success-100: #C6F6D5;
+--success-500: #38A169;  /* Principal */
+--success-600: #2F855A;
+--success-700: #276749;
+
+/* Estados de Error */
+--error-50: #FED7D7;
+--error-100: #FEB2B2;
+--error-500: #E53E3E;    /* Principal */
+--error-600: #C53030;
+--error-700: #9B2C2C;
+
+/* Estados de Advertencia */
+--warning-50: #FFFBEB;
+--warning-100: #FEF5E7;
+--warning-500: #DD6B20;  /* Principal */
+--warning-600: #C05621;
+--warning-700: #9C4221;
+
+/* Estados de Información */
+--info-50: #EBF4FF;
+--info-100: #BEE3F8;
+--info-500: #3182CE;     /* Principal */
+--info-600: #2B77CB;
+--info-700: #2C5AA0;
+```
+
+### Tipografía
+
+#### Escala Tipográfica
+```css
+/* Tamaños de Fuente */
+--text-xs: 0.75rem;      /* 12px */
+--text-sm: 0.875rem;     /* 14px */
+--text-base: 1rem;       /* 16px */
+--text-lg: 1.125rem;     /* 18px */
+--text-xl: 1.25rem;      /* 20px */
+--text-2xl: 1.5rem;      /* 24px */
+--text-3xl: 1.875rem;    /* 30px */
+--text-4xl: 2.25rem;     /* 36px */
+--text-5xl: 3rem;        /* 48px */
+
+/* Pesos de Fuente */
+--font-thin: 100;
+--font-light: 300;
+--font-normal: 400;
+--font-medium: 500;
+--font-semibold: 600;
+--font-bold: 700;
+--font-extrabold: 800;
+
+/* Altura de Línea */
+--leading-tight: 1.25;
+--leading-snug: 1.375;
+--leading-normal: 1.5;
+--leading-relaxed: 1.625;
+--leading-loose: 2;
+
+/* Espaciado de Letras */
+--tracking-tighter: -0.05em;
+--tracking-tight: -0.025em;
+--tracking-normal: 0;
+--tracking-wide: 0.025em;
+--tracking-wider: 0.05em;
+```
+
+### Espaciado
+
+#### Sistema de Espaciado (Base 4px)
+```css
+--space-0: 0;
+--space-1: 0.25rem;      /* 4px */
+--space-2: 0.5rem;       /* 8px */
+--space-3: 0.75rem;      /* 12px */
+--space-4: 1rem;         /* 16px */
+--space-5: 1.25rem;      /* 20px */
+--space-6: 1.5rem;       /* 24px */
+--space-8: 2rem;         /* 32px */
+--space-10: 2.5rem;      /* 40px */
+--space-12: 3rem;        /* 48px */
+--space-16: 4rem;        /* 64px */
+--space-20: 5rem;        /* 80px */
+--space-24: 6rem;        /* 96px */
+--space-32: 8rem;        /* 128px */
+```
+
+### Bordes y Radios
+
+#### Radios de Borde
+```css
+--radius-none: 0;
+--radius-sm: 0.125rem;   /* 2px */
+--radius-base: 0.25rem;  /* 4px */
+--radius-md: 0.375rem;   /* 6px */
+--radius-lg: 0.5rem;     /* 8px */
+--radius-xl: 0.75rem;    /* 12px */
+--radius-2xl: 1rem;      /* 16px */
+--radius-full: 9999px;   /* Circular */
+```
+
+#### Anchos de Borde
+```css
+--border-0: 0;
+--border-1: 1px;
+--border-2: 2px;
+--border-4: 4px;
+--border-8: 8px;
+```
+
+### Sombras
+
+#### Sistema de Sombras
+```css
+--shadow-xs: 0 0 0 1px rgba(0, 0, 0, 0.05);
+--shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+--shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+--shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+--shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+--shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+```
+
+---
+
+## 🧩 Componentes UI
+
+### Botones
+
+#### Variantes de Botones
+```css
+/* Botón Primario */
+.btn-primary {
+  background-color: var(--blue-500);
+  color: white;
+  border: 1px solid var(--blue-500);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-weight: var(--font-medium);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--blue-600);
+  border-color: var(--blue-600);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Botón Secundario */
+.btn-secondary {
+  background-color: transparent;
+  color: var(--blue-500);
+  border: 1px solid var(--blue-500);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-weight: var(--font-medium);
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background-color: var(--blue-50);
+  border-color: var(--blue-600);
+  color: var(--blue-600);
+}
+
+/* Botón de Peligro */
+.btn-danger {
+  background-color: var(--error-500);
+  color: white;
+  border: 1px solid var(--error-500);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-weight: var(--font-medium);
+}
+
+.btn-danger:hover {
+  background-color: var(--error-600);
+  border-color: var(--error-600);
+}
+```
+
+#### Tamaños de Botones
+```css
+/* Botón Pequeño */
+.btn-sm {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+}
+
+/* Botón Mediano (por defecto) */
+.btn-md {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-base);
+}
+
+/* Botón Grande */
+.btn-lg {
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-lg);
+}
+```
+
+### Formularios
+
+#### Campos de Entrada
+```css
+.form-input {
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  transition: all 0.2s ease;
+  background-color: white;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--blue-500);
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+}
+
+.form-input:invalid {
+  border-color: var(--error-500);
+}
+
+.form-input:disabled {
+  background-color: var(--gray-100);
+  color: var(--gray-500);
+  cursor: not-allowed;
+}
+```
+
+#### Labels y Ayuda
+```css
+.form-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--gray-700);
+  margin-bottom: var(--space-1);
+}
+
+.form-help {
+  font-size: var(--text-xs);
+  color: var(--gray-500);
+  margin-top: var(--space-1);
+}
+
+.form-error {
+  font-size: var(--text-xs);
+  color: var(--error-500);
+  margin-top: var(--space-1);
+}
+```
+
+### Tarjetas
+
+#### Tarjeta Base
+```css
+.card {
+  background-color: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-base);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--gray-200);
+  background-color: var(--gray-50);
+}
+
+.card-body {
+  padding: var(--space-6);
+}
+
+.card-footer {
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--gray-200);
+  background-color: var(--gray-50);
+}
+```
+
+### Navegación
+
+#### Breadcrumbs
+```css
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  font-size: var(--text-sm);
+  color: var(--gray-500);
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb-item:not(:last-child)::after {
+  content: '/';
+  margin: 0 var(--space-2);
+  color: var(--gray-400);
+}
+
+.breadcrumb-item a {
+  color: var(--blue-500);
+  text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+  text-decoration: underline;
+}
+```
+
+#### Menú Lateral
+```css
+.sidebar {
+  width: 256px;
+  background-color: white;
+  border-right: 1px solid var(--gray-200);
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-nav {
+  padding: var(--space-4);
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--gray-700);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  margin-bottom: var(--space-1);
+}
+
+.sidebar-item:hover {
+  background-color: var(--gray-100);
+  color: var(--gray-900);
+}
+
+.sidebar-item.active {
+  background-color: var(--blue-100);
+  color: var(--blue-700);
+}
+
+.sidebar-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: var(--space-3);
+}
+```
+
+### Tablas
+
+#### Tabla Base
+```css
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-base);
+}
+
+.table th {
+  background-color: var(--gray-50);
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-weight: var(--font-semibold);
+  color: var(--gray-700);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.table tr:hover {
+  background-color: var(--gray-50);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+```
+
+### Modales
+
+#### Modal Base
+```css
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2xl);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--gray-900);
+}
+
+.modal-body {
+  padding: var(--space-6);
+}
+
+.modal-footer {
+  padding: var(--space-6);
+  border-top: 1px solid var(--gray-200);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+```
+
+---
+
+## 📱 Responsive Design
+
+### Breakpoints
+```css
+/* Mobile First Approach */
+--breakpoint-sm: 640px;   /* Tablets pequeñas */
+--breakpoint-md: 768px;   /* Tablets */
+--breakpoint-lg: 1024px;  /* Laptops */
+--breakpoint-xl: 1280px;  /* Desktops */
+--breakpoint-2xl: 1536px; /* Pantallas grandes */
+```
+
+### Grid System
+```css
+.container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .container { max-width: 640px; }
+}
+
+@media (min-width: 768px) {
+  .container { max-width: 768px; }
+}
+
+@media (min-width: 1024px) {
+  .container { max-width: 1024px; }
+}
+
+@media (min-width: 1280px) {
+  .container { max-width: 1280px; }
+}
+```
+
+---
+
+## ♿ Accesibilidad
+
+### Contraste de Colores
+```css
+/* Combinaciones Aprobadas WCAG AA */
+.text-on-white {
+  color: var(--gray-700); /* Ratio: 4.5:1 */
+}
+
+.text-on-blue {
+  color: white; /* Ratio: 8.59:1 */
+}
+
+.text-on-success {
+  color: white; /* Ratio: 4.52:1 */
+}
+
+.text-on-error {
+  color: white; /* Ratio: 5.47:1 */
+}
+```
+
+### Estados de Foco
+```css
+.focus-visible {
+  outline: 2px solid var(--blue-500);
+  outline-offset: 2px;
+}
+
+.focus-visible:not(.focus-visible) {
+  outline: none;
+}
+```
+
+### Screen Readers
+```css
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+```
+
+---
+
+## 🎭 Estados de Interacción
+
+### Estados de Hover
+```css
+.interactive:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  transition: all 0.2s ease;
+}
+```
+
+### Estados de Loading
+```css
+.loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid var(--gray-300);
+  border-top-color: var(--blue-500);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+```
+
+---
+
+## 📋 Checklist de Implementación
+
+### Antes de Desarrollar
+- [ ] Revisar tokens de diseño actualizados
+- [ ] Verificar componentes disponibles
+- [ ] Confirmar patrones de interacción
+- [ ] Validar accesibilidad requerida
+
+### Durante el Desarrollo
+- [ ] Usar variables CSS definidas
+- [ ] Implementar estados de hover/focus
+- [ ] Añadir transiciones suaves
+- [ ] Probar en múltiples dispositivos
+
+### Antes de Publicar
+- [ ] Validar contraste de colores
+- [ ] Probar navegación por teclado
+- [ ] Verificar responsive design
+- [ ] Testear con screen readers
+
+---
+
+**Documento técnico - Para uso del equipo de desarrollo**  
+**Última actualización:** Enero 2024
