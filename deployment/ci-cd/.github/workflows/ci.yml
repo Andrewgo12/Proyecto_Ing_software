@@ -1,0 +1,453 @@
+# Continuous Integration Workflow for Sistema de Inventario PYMES
+# Runs tests, security scans, and builds on every push and pull request
+
+name: CI - Continuous Integration
+
+on:
+  push:
+    branches: [ main, develop, 'feature/*', 'hotfix/*' ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.11'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ==================== CODE QUALITY CHECKS ====================
+  
+  code-quality:
+    name: Code Quality & Security
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: |
+          src/frontend/package-lock.json
+          src/backend/package-lock.json
+    
+    - name: Install dependencies - Frontend
+      working-directory: ./src/frontend
+      run: npm ci
+    
+    - name: Install dependencies - Backend
+      working-directory: ./src/backend
+      run: npm ci
+    
+    - name: Lint Frontend
+      working-directory: ./src/frontend
+      run: npm run lint
+    
+    - name: Lint Backend
+      working-directory: ./src/backend
+      run: npm run lint
+    
+    - name: Type Check Frontend
+      working-directory: ./src/frontend
+      run: npm run type-check
+    
+    - name: Security Audit
+      run: |
+        cd src/frontend && npm audit --audit-level=moderate
+        cd ../backend && npm audit --audit-level=moderate
+    
+    - name: Run Snyk Security Scan
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high
+    
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # ==================== FRONTEND TESTS ====================
+  
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: src/frontend/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./src/frontend
+      run: npm ci
+    
+    - name: Run unit tests
+      working-directory: ./src/frontend
+      run: npm run test:coverage
+    
+    - name: Run E2E tests
+      working-directory: ./src/frontend
+      run: |
+        npm run build
+        npm run test:e2e:headless
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./src/frontend/coverage/lcov.info
+        flags: frontend
+        name: frontend-coverage
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: frontend-test-results
+        path: |
+          src/frontend/coverage/
+          src/frontend/test-results/
+
+  # ==================== BACKEND TESTS ====================
+  
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_USER: test_user
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: src/backend/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./src/backend
+      run: npm ci
+    
+    - name: Run database migrations
+      working-directory: ./src/backend
+      env:
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379
+      run: npm run migrate:test
+    
+    - name: Run unit tests
+      working-directory: ./src/backend
+      env:
+        NODE_ENV: test
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379
+        JWT_SECRET: test_secret
+      run: npm run test:coverage
+    
+    - name: Run integration tests
+      working-directory: ./src/backend
+      env:
+        NODE_ENV: test
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379
+        JWT_SECRET: test_secret
+      run: npm run test:integration
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./src/backend/coverage/lcov.info
+        flags: backend
+        name: backend-coverage
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: backend-test-results
+        path: |
+          src/backend/coverage/
+          src/backend/test-results/
+
+  # ==================== DATABASE TESTS ====================
+  
+  database-tests:
+    name: Database Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_USER: postgres
+          POSTGRES_DB: inventario_pymes_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Test database migrations
+      run: |
+        export PGPASSWORD=test_password
+        
+        # Run migrations in order
+        for migration in database/migrations/*.sql; do
+          echo "Running migration: $migration"
+          psql -h localhost -U postgres -d inventario_pymes_test -f "$migration"
+        done
+        
+        # Run schema validation
+        psql -h localhost -U postgres -d inventario_pymes_test -f database/schemas/database-schema.sql
+        
+        # Test views
+        psql -h localhost -U postgres -d inventario_pymes_test -f database/schemas/views.sql
+        
+        # Test stored procedures
+        psql -h localhost -U postgres -d inventario_pymes_test -f database/schemas/stored-procedures.sql
+    
+    - name: Load test data
+      run: |
+        export PGPASSWORD=test_password
+        psql -h localhost -U postgres -d inventario_pymes_test -f database/seeds/test-data.sql
+    
+    - name: Run database performance tests
+      run: |
+        export PGPASSWORD=test_password
+        psql -h localhost -U postgres -d inventario_pymes_test -f database/performance/query-optimization.sql
+
+  # ==================== DOCKER BUILD ====================
+  
+  docker-build:
+    name: Docker Build & Security Scan
+    runs-on: ubuntu-latest
+    needs: [code-quality, frontend-tests, backend-tests]
+    
+    strategy:
+      matrix:
+        component: [frontend, backend, database]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./deployment/docker/Dockerfile.${{ matrix.component }}
+        push: false
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.component }}:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.component }}:${{ github.sha }}
+        format: 'sarif'
+        output: 'trivy-results-${{ matrix.component }}.sarif'
+    
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results-${{ matrix.component }}.sarif'
+
+  # ==================== INFRASTRUCTURE VALIDATION ====================
+  
+  infrastructure-validation:
+    name: Infrastructure Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.6.0
+    
+    - name: Terraform Format Check
+      working-directory: ./deployment/terraform
+      run: terraform fmt -check -recursive
+    
+    - name: Terraform Init
+      working-directory: ./deployment/terraform
+      run: terraform init -backend=false
+    
+    - name: Terraform Validate
+      working-directory: ./deployment/terraform
+      run: terraform validate
+    
+    - name: Terraform Plan (Dry Run)
+      working-directory: ./deployment/terraform
+      env:
+        TF_VAR_db_password: "dummy_password_for_validation"
+        TF_VAR_environment: "ci"
+      run: terraform plan -no-color
+    
+    - name: Validate Kubernetes manifests
+      run: |
+        # Install kubeval
+        wget https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
+        tar xf kubeval-linux-amd64.tar.gz
+        sudo mv kubeval /usr/local/bin
+        
+        # Validate all Kubernetes YAML files
+        find deployment/kubernetes -name "*.yaml" -exec kubeval {} \;
+    
+    - name: Lint Helm charts (if any)
+      run: |
+        if [ -d "deployment/helm" ]; then
+          helm lint deployment/helm/*
+        fi
+
+  # ==================== API DOCUMENTATION ====================
+  
+  api-docs-validation:
+    name: API Documentation Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    
+    - name: Install Swagger CLI
+      run: npm install -g @apidevtools/swagger-cli
+    
+    - name: Validate OpenAPI specification
+      run: swagger-cli validate api-specs/openapi.yaml
+    
+    - name: Generate API documentation
+      run: |
+        npx redoc-cli build api-specs/openapi.yaml --output api-docs.html
+    
+    - name: Upload API documentation
+      uses: actions/upload-artifact@v3
+      with:
+        name: api-documentation
+        path: api-docs.html
+
+  # ==================== PERFORMANCE TESTS ====================
+  
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'performance-test')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    
+    - name: Install Artillery
+      run: npm install -g artillery
+    
+    - name: Run performance tests
+      run: |
+        if [ -f "tests/performance/load-test.yml" ]; then
+          artillery run tests/performance/load-test.yml --output performance-report.json
+          artillery report performance-report.json --output performance-report.html
+        fi
+    
+    - name: Upload performance results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: performance-results
+        path: |
+          performance-report.json
+          performance-report.html
+
+  # ==================== SUMMARY ====================
+  
+  ci-summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [code-quality, frontend-tests, backend-tests, database-tests, docker-build, infrastructure-validation, api-docs-validation]
+    if: always()
+    
+    steps:
+    - name: Check CI Results
+      run: |
+        echo "CI Pipeline Results:"
+        echo "==================="
+        echo "Code Quality: ${{ needs.code-quality.result }}"
+        echo "Frontend Tests: ${{ needs.frontend-tests.result }}"
+        echo "Backend Tests: ${{ needs.backend-tests.result }}"
+        echo "Database Tests: ${{ needs.database-tests.result }}"
+        echo "Docker Build: ${{ needs.docker-build.result }}"
+        echo "Infrastructure: ${{ needs.infrastructure-validation.result }}"
+        echo "API Docs: ${{ needs.api-docs-validation.result }}"
+        
+        # Fail if any critical job failed
+        if [[ "${{ needs.code-quality.result }}" == "failure" || 
+              "${{ needs.frontend-tests.result }}" == "failure" || 
+              "${{ needs.backend-tests.result }}" == "failure" || 
+              "${{ needs.database-tests.result }}" == "failure" ]]; then
+          echo "❌ CI Pipeline failed - critical tests failed"
+          exit 1
+        else
+          echo "✅ CI Pipeline completed successfully"
+        fi

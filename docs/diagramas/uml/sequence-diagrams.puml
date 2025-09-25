@@ -1,0 +1,600 @@
+@startuml Sistema_Inventario_PYMES_Sequence_Diagrams
+
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam sequenceArrowColor #6C757D
+skinparam sequenceLifeLineBackgroundColor #F8F9FA
+skinparam sequenceLifeLineBorderColor #DEE2E6
+
+title Sistema de Inventario PYMES - Diagramas de Secuencia
+
+' ==================== USER AUTHENTICATION ====================
+
+@startuml User_Authentication_Sequence
+title Autenticación de Usuario
+
+actor User as U
+participant "Frontend" as F
+participant "Auth Controller" as AC
+participant "Auth Service" as AS
+participant "Database" as DB
+participant "JWT Service" as JWT
+participant "Email Service" as ES
+
+U -> F: 1. Ingresar credenciales
+activate F
+
+F -> AC: 2. POST /api/auth/login
+activate AC
+
+AC -> AS: 3. validateCredentials(email, password)
+activate AS
+
+AS -> DB: 4. findUserByEmail(email)
+activate DB
+DB --> AS: 5. userData
+deactivate DB
+
+AS -> AS: 6. comparePassword(password, hashedPassword)
+
+alt Credenciales válidas
+    AS -> JWT: 7. generateTokens(userId)
+    activate JWT
+    JWT --> AS: 8. {accessToken, refreshToken}
+    deactivate JWT
+    
+    AS -> DB: 9. updateLastLogin(userId)
+    activate DB
+    DB --> AS: 10. success
+    deactivate DB
+    
+    AS --> AC: 11. {user, tokens}
+    deactivate AS
+    
+    AC --> F: 12. 200 OK {user, accessToken}
+    deactivate AC
+    
+    F --> U: 13. Redirigir a Dashboard
+    deactivate F
+
+else Credenciales inválidas
+    AS --> AC: 11. AuthenticationError
+    deactivate AS
+    
+    AC --> F: 12. 401 Unauthorized
+    deactivate AC
+    
+    F --> U: 13. Mostrar error
+    deactivate F
+
+else Cuenta bloqueada
+    AS -> ES: 11. sendAccountLockedEmail(email)
+    activate ES
+    ES --> AS: 12. emailSent
+    deactivate ES
+    
+    AS --> AC: 13. AccountLockedError
+    deactivate AS
+    
+    AC --> F: 14. 423 Locked
+    deactivate AC
+    
+    F --> U: 15. Mostrar mensaje de bloqueo
+    deactivate F
+end
+
+@enduml
+
+' ==================== PRODUCT CREATION ====================
+
+@startuml Product_Creation_Sequence
+title Creación de Producto
+
+actor User as U
+participant "Frontend" as F
+participant "Product Controller" as PC
+participant "Product Service" as PS
+participant "Validation Service" as VS
+participant "Database" as DB
+participant "Audit Service" as AUD
+participant "Notification Service" as NS
+
+U -> F: 1. Completar formulario de producto
+activate F
+
+F -> F: 2. Validar datos del formulario
+
+F -> PC: 3. POST /api/products
+activate PC
+
+PC -> VS: 4. validateProductData(productData)
+activate VS
+
+VS -> VS: 5. Validar campos requeridos
+VS -> VS: 6. Validar formato de datos
+VS -> VS: 7. Validar reglas de negocio
+
+alt Datos válidos
+    VS --> PC: 8. validationSuccess
+    deactivate VS
+    
+    PC -> PS: 9. createProduct(productData)
+    activate PS
+    
+    PS -> DB: 10. checkSKUExists(sku)
+    activate DB
+    DB --> PS: 11. skuExists: false
+    deactivate DB
+    
+    PS -> DB: 12. beginTransaction()
+    activate DB
+    
+    PS -> DB: 13. insertProduct(productData)
+    DB --> PS: 14. productId
+    
+    PS -> DB: 15. insertStockLevels(productId, locations)
+    DB --> PS: 16. stockLevelsCreated
+    
+    PS -> DB: 17. commitTransaction()
+    DB --> PS: 18. success
+    deactivate DB
+    
+    PS -> AUD: 19. logProductCreation(userId, productId)
+    activate AUD
+    AUD --> PS: 20. auditLogged
+    deactivate AUD
+    
+    PS -> NS: 21. notifyProductCreated(productId)
+    activate NS
+    NS --> PS: 22. notificationSent
+    deactivate NS
+    
+    PS --> PC: 23. createdProduct
+    deactivate PS
+    
+    PC --> F: 24. 201 Created {product}
+    deactivate PC
+    
+    F --> U: 25. Mostrar confirmación
+    deactivate F
+
+else SKU duplicado
+    PS -> DB: 11. skuExists: true
+    deactivate DB
+    
+    PS --> PC: 12. DuplicateSKUError
+    deactivate PS
+    
+    PC --> F: 13. 409 Conflict
+    deactivate PC
+    
+    F --> U: 14. Mostrar error de SKU duplicado
+    deactivate F
+
+else Datos inválidos
+    VS --> PC: 8. ValidationError
+    deactivate VS
+    
+    PC --> F: 9. 400 Bad Request
+    deactivate PC
+    
+    F --> U: 10. Mostrar errores de validación
+    deactivate F
+end
+
+@enduml
+
+' ==================== INVENTORY MOVEMENT ====================
+
+@startuml Inventory_Movement_Sequence
+title Registro de Movimiento de Inventario
+
+actor User as U
+participant "Frontend" as F
+participant "Inventory Controller" as IC
+participant "Inventory Service" as IS
+participant "Stock Service" as SS
+participant "Database" as DB
+participant "Alert Service" as AS
+participant "Audit Service" as AUD
+
+U -> F: 1. Registrar movimiento (entrada/salida)
+activate F
+
+F -> IC: 2. POST /api/inventory/movements
+activate IC
+
+IC -> IS: 3. processMovement(movementData)
+activate IS
+
+IS -> DB: 4. beginTransaction()
+activate DB
+
+IS -> SS: 5. validateMovement(movementData)
+activate SS
+
+alt Movimiento de salida
+    SS -> DB: 6. getCurrentStock(productId, locationId)
+    DB --> SS: 7. currentStock
+    
+    SS -> SS: 8. validateSufficientStock(currentStock, quantity)
+    
+    alt Stock suficiente
+        SS --> IS: 9. validationSuccess
+        deactivate SS
+        
+        IS -> DB: 10. insertMovement(movementData)
+        DB --> IS: 11. movementId
+        
+        IS -> DB: 12. updateStockLevel(productId, locationId, -quantity)
+        DB --> IS: 13. newStockLevel
+        
+        IS -> AS: 14. checkStockAlerts(productId, locationId, newStockLevel)
+        activate AS
+        
+        alt Stock bajo detectado
+            AS -> DB: 15. createAlert(LOW_STOCK, productId, locationId)
+            DB --> AS: 16. alertCreated
+            
+            AS -> AS: 17. sendLowStockNotification()
+        end
+        
+        AS --> IS: 18. alertsProcessed
+        deactivate AS
+        
+        IS -> DB: 19. commitTransaction()
+        DB --> IS: 20. success
+        deactivate DB
+        
+        IS -> AUD: 21. logMovement(userId, movementId)
+        activate AUD
+        AUD --> IS: 22. auditLogged
+        deactivate AUD
+        
+        IS --> IC: 23. movementProcessed
+        deactivate IS
+        
+        IC --> F: 24. 201 Created {movement}
+        deactivate IC
+        
+        F --> U: 25. Confirmar movimiento exitoso
+        deactivate F
+    
+    else Stock insuficiente
+        SS --> IS: 9. InsufficientStockError
+        deactivate SS
+        
+        IS -> DB: 10. rollbackTransaction()
+        DB --> IS: 11. rollbackComplete
+        deactivate DB
+        
+        IS --> IC: 12. InsufficientStockError
+        deactivate IS
+        
+        IC --> F: 13. 400 Bad Request
+        deactivate IC
+        
+        F --> U: 14. Mostrar error de stock insuficiente
+        deactivate F
+    end
+
+else Movimiento de entrada
+    SS --> IS: 6. validationSuccess
+    deactivate SS
+    
+    IS -> DB: 7. insertMovement(movementData)
+    DB --> IS: 8. movementId
+    
+    IS -> DB: 9. updateStockLevel(productId, locationId, +quantity)
+    DB --> IS: 10. newStockLevel
+    
+    IS -> DB: 11. commitTransaction()
+    DB --> IS: 12. success
+    deactivate DB
+    
+    IS -> AUD: 13. logMovement(userId, movementId)
+    activate AUD
+    AUD --> IS: 14. auditLogged
+    deactivate AUD
+    
+    IS --> IC: 15. movementProcessed
+    deactivate IS
+    
+    IC --> F: 16. 201 Created {movement}
+    deactivate IC
+    
+    F --> U: 17. Confirmar entrada exitosa
+    deactivate F
+end
+
+@enduml
+
+' ==================== REPORT GENERATION ====================
+
+@startuml Report_Generation_Sequence
+title Generación de Reportes
+
+actor User as U
+participant "Frontend" as F
+participant "Report Controller" as RC
+participant "Report Service" as RS
+participant "Query Builder" as QB
+participant "Database" as DB
+participant "PDF Generator" as PDF
+participant "Email Service" as ES
+participant "File Storage" as FS
+
+U -> F: 1. Solicitar reporte de inventario
+activate F
+
+F -> RC: 2. POST /api/reports/inventory
+activate RC
+
+RC -> RS: 3. generateInventoryReport(parameters)
+activate RS
+
+RS -> QB: 4. buildInventoryQuery(filters, dateRange)
+activate QB
+QB --> RS: 5. sqlQuery
+deactivate QB
+
+RS -> DB: 6. executeQuery(sqlQuery)
+activate DB
+DB --> RS: 7. reportData
+deactivate DB
+
+RS -> RS: 8. processReportData(reportData)
+
+alt Formato PDF
+    RS -> PDF: 9. generatePDF(processedData, template)
+    activate PDF
+    PDF --> RS: 10. pdfBuffer
+    deactivate PDF
+    
+    RS -> FS: 11. saveFile(pdfBuffer, fileName)
+    activate FS
+    FS --> RS: 12. fileUrl
+    deactivate FS
+
+else Formato Excel
+    RS -> RS: 9. generateExcel(processedData)
+    RS -> FS: 10. saveFile(excelBuffer, fileName)
+    activate FS
+    FS --> RS: 11. fileUrl
+    deactivate FS
+
+else Formato CSV
+    RS -> RS: 9. generateCSV(processedData)
+    RS -> FS: 10. saveFile(csvBuffer, fileName)
+    activate FS
+    FS --> RS: 11. fileUrl
+    deactivate FS
+end
+
+RS -> DB: 12. saveReportRecord(reportId, fileUrl, parameters)
+activate DB
+DB --> RS: 13. reportSaved
+deactivate DB
+
+alt Envío por email solicitado
+    RS -> ES: 14. sendReportByEmail(userEmail, fileUrl)
+    activate ES
+    ES --> RS: 15. emailSent
+    deactivate ES
+end
+
+RS --> RC: 16. reportGenerated {reportId, fileUrl}
+deactivate RS
+
+RC --> F: 17. 200 OK {report}
+deactivate RC
+
+F --> U: 18. Mostrar enlace de descarga
+deactivate F
+
+@enduml
+
+' ==================== ALERT PROCESSING ====================
+
+@startuml Alert_Processing_Sequence
+title Procesamiento de Alertas Automáticas
+
+participant "Scheduler" as SCH
+participant "Alert Service" as AS
+participant "Database" as DB
+participant "Stock Service" as SS
+participant "Notification Service" as NS
+participant "Email Service" as ES
+participant "SMS Service" as SMS
+
+SCH -> AS: 1. Ejecutar verificación de alertas (cada hora)
+activate AS
+
+AS -> DB: 2. getActiveProducts()
+activate DB
+DB --> AS: 3. productList
+deactivate DB
+
+loop Para cada producto
+    AS -> SS: 4. getCurrentStockLevels(productId)
+    activate SS
+    
+    SS -> DB: 5. getStockByLocations(productId)
+    activate DB
+    DB --> SS: 6. stockLevels
+    deactivate DB
+    
+    SS --> AS: 7. stockData
+    deactivate SS
+    
+    loop Para cada ubicación
+        AS -> AS: 8. evaluateStockLevel(stock, minLevel, maxLevel)
+        
+        alt Stock bajo detectado
+            AS -> DB: 9. checkExistingAlert(LOW_STOCK, productId, locationId)
+            activate DB
+            DB --> AS: 10. alertExists: false
+            deactivate DB
+            
+            AS -> DB: 11. createAlert(LOW_STOCK, productId, locationId, currentStock)
+            activate DB
+            DB --> AS: 12. alertId
+            deactivate DB
+            
+            AS -> NS: 13. processAlert(alertId, LOW_STOCK)
+            activate NS
+            
+            NS -> DB: 14. getAlertRecipients(alertType, locationId)
+            activate DB
+            DB --> NS: 15. recipientList
+            deactivate DB
+            
+            loop Para cada destinatario
+                alt Notificación por email
+                    NS -> ES: 16. sendLowStockEmail(recipient, alertData)
+                    activate ES
+                    ES --> NS: 17. emailSent
+                    deactivate ES
+                
+                else Notificación por SMS
+                    NS -> SMS: 16. sendLowStockSMS(recipient, alertData)
+                    activate SMS
+                    SMS --> NS: 17. smsSent
+                    deactivate SMS
+                end
+            end
+            
+            NS --> AS: 18. notificationsSent
+            deactivate NS
+        
+        else Stock agotado detectado
+            AS -> DB: 9. createAlert(OUT_OF_STOCK, productId, locationId, 0)
+            activate DB
+            DB --> AS: 10. alertId
+            deactivate DB
+            
+            AS -> NS: 11. processUrgentAlert(alertId, OUT_OF_STOCK)
+            activate NS
+            
+            ' Similar proceso de notificación pero con mayor prioridad
+            NS --> AS: 12. urgentNotificationsSent
+            deactivate NS
+        
+        else Sobrestock detectado
+            AS -> DB: 9. createAlert(OVERSTOCK, productId, locationId, currentStock)
+            activate DB
+            DB --> AS: 10. alertId
+            deactivate DB
+        
+        else Stock normal
+            AS -> DB: 9. resolveExistingAlerts(productId, locationId)
+            activate DB
+            DB --> AS: 10. alertsResolved
+            deactivate DB
+        end
+    end
+end
+
+AS -> DB: 19. updateAlertProcessingLog(timestamp, alertsProcessed)
+activate DB
+DB --> AS: 20. logUpdated
+deactivate DB
+
+AS --> SCH: 21. alertProcessingComplete
+deactivate AS
+
+@enduml
+
+' ==================== MOBILE SYNC ====================
+
+@startuml Mobile_Sync_Sequence
+title Sincronización de Aplicación Móvil
+
+actor "Mobile User" as MU
+participant "Mobile App" as MA
+participant "Sync Controller" as SC
+participant "Sync Service" as SS
+participant "Database" as DB
+participant "Conflict Resolver" as CR
+
+MU -> MA: 1. Abrir aplicación (conexión restaurada)
+activate MA
+
+MA -> MA: 2. Verificar datos pendientes de sincronización
+
+MA -> SC: 3. POST /api/sync/mobile
+activate SC
+
+SC -> SS: 4. processMobileSync(deviceId, lastSyncTime, pendingData)
+activate SS
+
+' Sincronización de datos del servidor al móvil
+SS -> DB: 5. getUpdatedData(lastSyncTime)
+activate DB
+DB --> SS: 6. serverUpdates
+deactivate DB
+
+' Procesamiento de datos pendientes del móvil
+loop Para cada operación pendiente
+    SS -> SS: 7. validatePendingOperation(operation)
+    
+    alt Operación válida
+        SS -> DB: 8. checkConflicts(operation)
+        activate DB
+        DB --> SS: 9. conflictData
+        deactivate DB
+        
+        alt Sin conflictos
+            SS -> DB: 10. applyOperation(operation)
+            activate DB
+            DB --> SS: 11. operationApplied
+            deactivate DB
+        
+        else Conflictos detectados
+            SS -> CR: 10. resolveConflict(operation, conflictData)
+            activate CR
+            
+            CR -> CR: 11. applyConflictResolutionRules()
+            
+            alt Resolución automática posible
+                CR --> SS: 12. resolvedOperation
+                deactivate CR
+                
+                SS -> DB: 13. applyResolvedOperation(resolvedOperation)
+                activate DB
+                DB --> SS: 14. operationApplied
+                deactivate DB
+            
+            else Requiere intervención manual
+                CR --> SS: 12. manualResolutionRequired
+                deactivate CR
+                
+                SS -> SS: 13. flagForManualResolution(operation)
+            end
+        end
+    
+    else Operación inválida
+        SS -> SS: 8. logInvalidOperation(operation)
+    end
+end
+
+SS -> DB: 15. updateLastSyncTime(deviceId, currentTime)
+activate DB
+DB --> SS: 16. syncTimeUpdated
+deactivate DB
+
+SS --> SC: 17. syncResult {serverUpdates, appliedOperations, conflicts}
+deactivate SS
+
+SC --> MA: 18. 200 OK {syncData}
+deactivate SC
+
+MA -> MA: 19. updateLocalDatabase(syncData)
+MA -> MA: 20. resolveUIConflicts()
+
+MA --> MU: 21. Mostrar estado de sincronización
+deactivate MA
+
+@enduml
+
+@enduml

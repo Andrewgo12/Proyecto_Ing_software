@@ -1,0 +1,591 @@
+// Jenkins Pipeline for Sistema de Inventario PYMES
+// Comprehensive CI/CD pipeline with multiple stages and environments
+
+pipeline {
+    agent any
+    
+    // Environment variables
+    environment {
+        // Docker and Registry
+        DOCKER_REGISTRY = 'ghcr.io'
+        IMAGE_NAME = 'inventario-pymes'
+        DOCKER_BUILDKIT = '1'
+        
+        // Application
+        NODE_VERSION = '18'
+        POSTGRES_VERSION = '15'
+        
+        // AWS Configuration
+        AWS_DEFAULT_REGION = 'us-east-1'
+        AWS_ACCOUNT_ID = credentials('aws-account-id')
+        
+        // Kubernetes
+        KUBECONFIG = credentials('kubeconfig')
+        
+        // Notification
+        SLACK_CHANNEL = '#deployments'
+        SLACK_WEBHOOK = credentials('slack-webhook-url')
+        
+        // Security
+        SNYK_TOKEN = credentials('snyk-token')
+        SONAR_TOKEN = credentials('sonar-token')
+    }
+    
+    // Build parameters
+    parameters {
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['staging', 'production'],
+            description: 'Target environment for deployment'
+        )
+        booleanParam(
+            name: 'SKIP_TESTS',
+            defaultValue: false,
+            description: 'Skip test execution (not recommended for production)'
+        )
+        booleanParam(
+            name: 'FORCE_DEPLOY',
+            defaultValue: false,
+            description: 'Force deployment even if quality gates fail'
+        )
+        string(
+            name: 'IMAGE_TAG',
+            defaultValue: '',
+            description: 'Custom image tag (leave empty for auto-generated)'
+        )
+    }
+    
+    // Pipeline options
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        timeout(time: 60, unit: 'MINUTES')
+        timestamps()
+        ansiColor('xterm')
+        skipDefaultCheckout()
+    }
+    
+    // Triggers
+    triggers {
+        // Poll SCM every 5 minutes for changes
+        pollSCM('H/5 * * * *')
+        
+        // Trigger on webhook
+        githubPush()
+    }
+    
+    stages {
+        // ==================== PREPARATION ====================
+        
+        stage('Preparation') {
+            steps {
+                script {
+                    // Clean workspace
+                    cleanWs()
+                    
+                    // Checkout code
+                    checkout scm
+                    
+                    // Set build information
+                    env.BUILD_TIMESTAMP = sh(
+                        script: 'date +%Y%m%d-%H%M%S',
+                        returnStdout: true
+                    ).trim()
+                    
+                    env.GIT_COMMIT_SHORT = sh(
+                        script: 'git rev-parse --short HEAD',
+                        returnStdout: true
+                    ).trim()
+                    
+                    env.IMAGE_TAG_FINAL = params.IMAGE_TAG ?: "${env.BUILD_TIMESTAMP}-${env.GIT_COMMIT_SHORT}"
+                    
+                    // Determine deployment environment
+                    if (env.BRANCH_NAME == 'main') {
+                        env.DEPLOY_ENV = 'production'
+                    } else if (env.BRANCH_NAME == 'develop') {
+                        env.DEPLOY_ENV = 'staging'
+                    } else {
+                        env.DEPLOY_ENV = params.ENVIRONMENT
+                    }
+                    
+                    echo "Build Information:"
+                    echo "=================="
+                    echo "Branch: ${env.BRANCH_NAME}"
+                    echo "Commit: ${env.GIT_COMMIT_SHORT}"
+                    echo "Image Tag: ${env.IMAGE_TAG_FINAL}"
+                    echo "Environment: ${env.DEPLOY_ENV}"
+                }
+            }
+        }
+        
+        // ==================== CODE QUALITY ====================
+        
+        stage('Code Quality') {
+            parallel {
+                stage('Lint & Format') {
+                    steps {
+                        script {
+                            // Setup Node.js
+                            sh """
+                                nvm use ${NODE_VERSION}
+                                
+                                # Frontend linting
+                                cd src/frontend
+                                npm ci
+                                npm run lint
+                                npm run format:check
+                                
+                                # Backend linting
+                                cd ../backend
+                                npm ci
+                                npm run lint
+                                npm run format:check
+                            """
+                        }
+                    }
+                }
+                
+                stage('Security Scan') {
+                    steps {
+                        script {
+                            // Snyk security scan
+                            sh """
+                                # Install Snyk
+                                npm install -g snyk
+                                
+                                # Authenticate
+                                snyk auth ${SNYK_TOKEN}
+                                
+                                # Scan frontend
+                                cd src/frontend
+                                snyk test --severity-threshold=high
+                                
+                                # Scan backend
+                                cd ../backend
+                                snyk test --severity-threshold=high
+                            """
+                        }
+                    }
+                }
+                
+                stage('SonarQube Analysis') {
+                    steps {
+                        script {
+                            withSonarQubeEnv('SonarQube') {
+                                sh """
+                                    sonar-scanner \
+                                        -Dsonar.projectKey=inventario-pymes \
+                                        -Dsonar.sources=src \
+                                        -Dsonar.host.url=\$SONAR_HOST_URL \
+                                        -Dsonar.login=\$SONAR_AUTH_TOKEN
+                                """
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // ==================== TESTING ====================
+        
+        stage('Testing') {
+            when {
+                not { params.SKIP_TESTS }
+            }
+            parallel {
+                stage('Frontend Tests') {
+                    steps {
+                        script {
+                            sh """
+                                cd src/frontend
+                                npm ci
+                                npm run test:coverage
+                                npm run test:e2e:headless
+                            """
+                        }
+                    }
+                    post {
+                        always {
+                            publishHTML([
+                                allowMissing: false,
+                                alwaysLinkToLastBuild: true,
+                                keepAll: true,
+                                reportDir: 'src/frontend/coverage/lcov-report',
+                                reportFiles: 'index.html',
+                                reportName: 'Frontend Coverage Report'
+                            ])
+                        }
+                    }
+                }
+                
+                stage('Backend Tests') {
+                    steps {
+                        script {
+                            // Start test services
+                            sh """
+                                docker-compose -f deployment/docker/docker-compose.dev.yml up -d postgres redis
+                                
+                                # Wait for services
+                                sleep 30
+                                
+                                cd src/backend
+                                npm ci
+                                
+                                # Run migrations
+                                npm run migrate:test
+                                
+                                # Run tests
+                                npm run test:coverage
+                                npm run test:integration
+                            """
+                        }
+                    }
+                    post {
+                        always {
+                            sh 'docker-compose -f deployment/docker/docker-compose.dev.yml down'
+                            publishHTML([
+                                allowMissing: false,
+                                alwaysLinkToLastBuild: true,
+                                keepAll: true,
+                                reportDir: 'src/backend/coverage/lcov-report',
+                                reportFiles: 'index.html',
+                                reportName: 'Backend Coverage Report'
+                            ])
+                        }
+                    }
+                }
+                
+                stage('Database Tests') {
+                    steps {
+                        script {
+                            sh """
+                                # Start PostgreSQL
+                                docker run -d --name postgres-test \
+                                    -e POSTGRES_PASSWORD=test_password \
+                                    -e POSTGRES_USER=postgres \
+                                    -e POSTGRES_DB=inventario_pymes_test \
+                                    -p 5432:5432 \
+                                    postgres:${POSTGRES_VERSION}
+                                
+                                # Wait for PostgreSQL
+                                sleep 30
+                                
+                                # Test migrations
+                                export PGPASSWORD=test_password
+                                for migration in database/migrations/*.sql; do
+                                    echo "Testing migration: \$migration"
+                                    psql -h localhost -U postgres -d inventario_pymes_test -f "\$migration"
+                                done
+                                
+                                # Test schema
+                                psql -h localhost -U postgres -d inventario_pymes_test -f database/schemas/database-schema.sql
+                                psql -h localhost -U postgres -d inventario_pymes_test -f database/schemas/views.sql
+                                psql -h localhost -U postgres -d inventario_pymes_test -f database/schemas/stored-procedures.sql
+                                
+                                # Load test data
+                                psql -h localhost -U postgres -d inventario_pymes_test -f database/seeds/test-data.sql
+                            """
+                        }
+                    }
+                    post {
+                        always {
+                            sh 'docker rm -f postgres-test || true'
+                        }
+                    }
+                }
+            }
+        }
+        
+        // ==================== QUALITY GATE ====================
+        
+        stage('Quality Gate') {
+            steps {
+                script {
+                    timeout(time: 5, unit: 'MINUTES') {
+                        def qg = waitForQualityGate()
+                        if (qg.status != 'OK' && !params.FORCE_DEPLOY) {
+                            error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                        } else if (qg.status != 'OK' && params.FORCE_DEPLOY) {
+                            echo "Quality gate failed but FORCE_DEPLOY is enabled. Continuing..."
+                        }
+                    }
+                }
+            }
+        }
+        
+        // ==================== BUILD IMAGES ====================
+        
+        stage('Build Images') {
+            parallel {
+                stage('Frontend Image') {
+                    steps {
+                        script {
+                            sh """
+                                docker build \
+                                    -f deployment/docker/Dockerfile.frontend \
+                                    -t ${DOCKER_REGISTRY}/${IMAGE_NAME}/frontend:${env.IMAGE_TAG_FINAL} \
+                                    --build-arg BUILD_DATE=\$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+                                    --build-arg VCS_REF=${env.GIT_COMMIT} \
+                                    --build-arg VERSION=${env.IMAGE_TAG_FINAL} \
+                                    .
+                            """
+                        }
+                    }
+                }
+                
+                stage('Backend Image') {
+                    steps {
+                        script {
+                            sh """
+                                docker build \
+                                    -f deployment/docker/Dockerfile.backend \
+                                    -t ${DOCKER_REGISTRY}/${IMAGE_NAME}/backend:${env.IMAGE_TAG_FINAL} \
+                                    --build-arg BUILD_DATE=\$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+                                    --build-arg VCS_REF=${env.GIT_COMMIT} \
+                                    --build-arg VERSION=${env.IMAGE_TAG_FINAL} \
+                                    .
+                            """
+                        }
+                    }
+                }
+                
+                stage('Database Image') {
+                    steps {
+                        script {
+                            sh """
+                                docker build \
+                                    -f deployment/docker/Dockerfile.database \
+                                    -t ${DOCKER_REGISTRY}/${IMAGE_NAME}/database:${env.IMAGE_TAG_FINAL} \
+                                    --build-arg BUILD_DATE=\$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+                                    --build-arg VCS_REF=${env.GIT_COMMIT} \
+                                    --build-arg VERSION=${env.IMAGE_TAG_FINAL} \
+                                    .
+                            """
+                        }
+                    }
+                }
+            }
+        }
+        
+        // ==================== SECURITY SCAN IMAGES ====================
+        
+        stage('Image Security Scan') {
+            parallel {
+                stage('Trivy Scan') {
+                    steps {
+                        script {
+                            sh """
+                                # Install Trivy
+                                curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+                                
+                                # Scan images
+                                trivy image --exit-code 1 --severity HIGH,CRITICAL ${DOCKER_REGISTRY}/${IMAGE_NAME}/frontend:${env.IMAGE_TAG_FINAL}
+                                trivy image --exit-code 1 --severity HIGH,CRITICAL ${DOCKER_REGISTRY}/${IMAGE_NAME}/backend:${env.IMAGE_TAG_FINAL}
+                                trivy image --exit-code 1 --severity HIGH,CRITICAL ${DOCKER_REGISTRY}/${IMAGE_NAME}/database:${env.IMAGE_TAG_FINAL}
+                            """
+                        }
+                    }
+                }
+            }
+        }
+        
+        // ==================== PUSH IMAGES ====================
+        
+        stage('Push Images') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'docker-registry', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh """
+                            echo \$DOCKER_PASS | docker login ${DOCKER_REGISTRY} -u \$DOCKER_USER --password-stdin
+                            
+                            docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}/frontend:${env.IMAGE_TAG_FINAL}
+                            docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}/backend:${env.IMAGE_TAG_FINAL}
+                            docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}/database:${env.IMAGE_TAG_FINAL}
+                            
+                            # Tag as latest if main branch
+                            if [ "${env.BRANCH_NAME}" = "main" ]; then
+                                docker tag ${DOCKER_REGISTRY}/${IMAGE_NAME}/frontend:${env.IMAGE_TAG_FINAL} ${DOCKER_REGISTRY}/${IMAGE_NAME}/frontend:latest
+                                docker tag ${DOCKER_REGISTRY}/${IMAGE_NAME}/backend:${env.IMAGE_TAG_FINAL} ${DOCKER_REGISTRY}/${IMAGE_NAME}/backend:latest
+                                docker tag ${DOCKER_REGISTRY}/${IMAGE_NAME}/database:${env.IMAGE_TAG_FINAL} ${DOCKER_REGISTRY}/${IMAGE_NAME}/database:latest
+                                
+                                docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}/frontend:latest
+                                docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}/backend:latest
+                                docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}/database:latest
+                            fi
+                        """
+                    }
+                }
+            }
+        }
+        
+        // ==================== DEPLOY ====================
+        
+        stage('Deploy') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'develop'
+                    expression { params.ENVIRONMENT != null }
+                }
+            }
+            steps {
+                script {
+                    // Deployment approval for production
+                    if (env.DEPLOY_ENV == 'production' && !params.FORCE_DEPLOY) {
+                        timeout(time: 10, unit: 'MINUTES') {
+                            input message: 'Deploy to Production?', 
+                                  ok: 'Deploy',
+                                  submitterParameter: 'DEPLOYER'
+                        }
+                    }
+                    
+                    // Deploy using deployment script
+                    sh """
+                        chmod +x deployment/scripts/deploy.sh
+                        
+                        export DOCKER_REGISTRY=${DOCKER_REGISTRY}/${IMAGE_NAME}
+                        export IMAGE_TAG=${env.IMAGE_TAG_FINAL}
+                        export ENVIRONMENT=${env.DEPLOY_ENV}
+                        
+                        ./deployment/scripts/deploy.sh \
+                            --environment ${env.DEPLOY_ENV} \
+                            --registry ${DOCKER_REGISTRY}/${IMAGE_NAME} \
+                            --tag ${env.IMAGE_TAG_FINAL} \
+                            --skip-build \
+                            --skip-tests
+                    """
+                }
+            }
+        }
+        
+        // ==================== POST-DEPLOYMENT TESTS ====================
+        
+        stage('Post-Deployment Tests') {
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'develop'
+                    expression { params.ENVIRONMENT != null }
+                }
+            }
+            steps {
+                script {
+                    sh """
+                        # Health checks
+                        chmod +x deployment/scripts/health-check.sh
+                        ./deployment/scripts/health-check.sh \
+                            --environment ${env.DEPLOY_ENV} \
+                            --namespace inventario-pymes-${env.DEPLOY_ENV} \
+                            --verbose
+                        
+                        # Smoke tests
+                        if [ "${env.DEPLOY_ENV}" = "production" ]; then
+                            BASE_URL="https://inventario-pymes.com"
+                        else
+                            BASE_URL="https://staging.inventario-pymes.com"
+                        fi
+                        
+                        curl -f \$BASE_URL/health
+                        curl -f \$BASE_URL/api/health
+                        curl -f \$BASE_URL/api/ready
+                    """
+                }
+            }
+        }
+    }
+    
+    // ==================== POST ACTIONS ====================
+    
+    post {
+        always {
+            // Clean up Docker images
+            sh """
+                docker image prune -f
+                docker system prune -f --volumes
+            """
+            
+            // Archive artifacts
+            archiveArtifacts artifacts: 'deployment/logs/*.log', allowEmptyArchive: true
+            
+            // Publish test results
+            publishTestResults testResultsPattern: '**/test-results.xml'
+            
+            // Record issues
+            recordIssues enabledForFailure: true, tools: [
+                checkStyle(pattern: '**/checkstyle-result.xml'),
+                spotBugs(pattern: '**/spotbugsXml.xml')
+            ]
+        }
+        
+        success {
+            script {
+                // Send success notification
+                slackSend(
+                    channel: env.SLACK_CHANNEL,
+                    color: 'good',
+                    message: """
+                        ✅ *Deployment Successful*
+                        
+                        *Environment:* ${env.DEPLOY_ENV}
+                        *Branch:* ${env.BRANCH_NAME}
+                        *Commit:* ${env.GIT_COMMIT_SHORT}
+                        *Image Tag:* ${env.IMAGE_TAG_FINAL}
+                        *Build:* ${env.BUILD_NUMBER}
+                        *Duration:* ${currentBuild.durationString}
+                        
+                        *Deployed by:* ${env.DEPLOYER ?: env.BUILD_USER ?: 'Jenkins'}
+                    """.stripIndent()
+                )
+            }
+        }
+        
+        failure {
+            script {
+                // Send failure notification
+                slackSend(
+                    channel: env.SLACK_CHANNEL,
+                    color: 'danger',
+                    message: """
+                        ❌ *Deployment Failed*
+                        
+                        *Environment:* ${env.DEPLOY_ENV}
+                        *Branch:* ${env.BRANCH_NAME}
+                        *Commit:* ${env.GIT_COMMIT_SHORT}
+                        *Build:* ${env.BUILD_NUMBER}
+                        *Stage:* ${env.STAGE_NAME}
+                        
+                        *Build Log:* ${env.BUILD_URL}console
+                    """.stripIndent()
+                )
+                
+                // Trigger rollback for production failures
+                if (env.DEPLOY_ENV == 'production' && env.STAGE_NAME == 'Deploy') {
+                    sh """
+                        chmod +x deployment/scripts/rollback.sh
+                        ./deployment/scripts/rollback.sh \
+                            --environment ${env.DEPLOY_ENV} \
+                            --namespace inventario-pymes-${env.DEPLOY_ENV} \
+                            --force
+                    """
+                }
+            }
+        }
+        
+        unstable {
+            script {
+                slackSend(
+                    channel: env.SLACK_CHANNEL,
+                    color: 'warning',
+                    message: """
+                        ⚠️ *Build Unstable*
+                        
+                        *Environment:* ${env.DEPLOY_ENV}
+                        *Branch:* ${env.BRANCH_NAME}
+                        *Build:* ${env.BUILD_NUMBER}
+                        
+                        Please check the build logs for warnings.
+                    """.stripIndent()
+                )
+            }
+        }
+    }
+}

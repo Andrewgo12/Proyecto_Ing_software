@@ -1,0 +1,456 @@
+# Continuous Deployment Workflow for Sistema de Inventario PYMES
+# Deploys to different environments based on branch and triggers
+
+name: CD - Continuous Deployment
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      force_deploy:
+        description: 'Force deployment (skip some checks)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ==================== DETERMINE DEPLOYMENT ENVIRONMENT ====================
+  
+  determine-environment:
+    name: Determine Environment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+      should_deploy: ${{ steps.env.outputs.should_deploy }}
+      image_tag: ${{ steps.env.outputs.image_tag }}
+    
+    steps:
+    - name: Determine deployment environment
+      id: env
+      run: |
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          echo "should_deploy=true" >> $GITHUB_OUTPUT
+          echo "image_tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          echo "environment=production" >> $GITHUB_OUTPUT
+          echo "should_deploy=true" >> $GITHUB_OUTPUT
+          echo "image_tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+          echo "environment=staging" >> $GITHUB_OUTPUT
+          echo "should_deploy=true" >> $GITHUB_OUTPUT
+          echo "image_tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          echo "environment=production" >> $GITHUB_OUTPUT
+          echo "should_deploy=true" >> $GITHUB_OUTPUT
+          echo "image_tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        else
+          echo "should_deploy=false" >> $GITHUB_OUTPUT
+        fi
+
+  # ==================== BUILD AND PUSH IMAGES ====================
+  
+  build-and-push:
+    name: Build & Push Images
+    runs-on: ubuntu-latest
+    needs: determine-environment
+    if: needs.determine-environment.outputs.should_deploy == 'true'
+    
+    strategy:
+      matrix:
+        component: [frontend, backend, database]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.component }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./deployment/docker/Dockerfile.${{ matrix.component }}
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          VCS_REF=${{ github.sha }}
+          VERSION=${{ needs.determine-environment.outputs.image_tag }}
+
+  # ==================== DEPLOY TO STAGING ====================
+  
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [determine-environment, build-and-push]
+    if: needs.determine-environment.outputs.environment == 'staging'
+    environment: 
+      name: staging
+      url: https://staging.inventario-pymes.com
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+    
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+    
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name inventario-pymes-cluster-staging
+    
+    - name: Deploy to Kubernetes
+      run: |
+        # Update image tags in deployment files
+        sed -i "s|{{DOCKER_REGISTRY}}|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}|g" deployment/kubernetes/deployments/*.yaml
+        sed -i "s|{{IMAGE_TAG}}|${{ needs.determine-environment.outputs.image_tag }}|g" deployment/kubernetes/deployments/*.yaml
+        
+        # Apply Kubernetes manifests
+        kubectl apply -f deployment/kubernetes/namespace.yaml
+        kubectl apply -f deployment/kubernetes/configmap.yaml
+        kubectl apply -f deployment/kubernetes/secrets.yaml
+        kubectl apply -f deployment/kubernetes/deployments/
+        kubectl apply -f deployment/kubernetes/services/
+        kubectl apply -f deployment/kubernetes/ingress.yaml
+    
+    - name: Wait for deployment
+      run: |
+        kubectl rollout status deployment/frontend -n inventario-pymes-staging --timeout=600s
+        kubectl rollout status deployment/backend -n inventario-pymes-staging --timeout=600s
+        kubectl rollout status statefulset/postgres -n inventario-pymes-staging --timeout=600s
+    
+    - name: Run health checks
+      run: |
+        chmod +x deployment/scripts/health-check.sh
+        ./deployment/scripts/health-check.sh -e staging -n inventario-pymes-staging
+    
+    - name: Run smoke tests
+      run: |
+        # Basic smoke tests
+        curl -f https://staging.inventario-pymes.com/health || exit 1
+        curl -f https://staging.inventario-pymes.com/api/health || exit 1
+
+  # ==================== DEPLOY TO PRODUCTION ====================
+  
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [determine-environment, build-and-push]
+    if: needs.determine-environment.outputs.environment == 'production'
+    environment: 
+      name: production
+      url: https://inventario-pymes.com
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Production deployment approval
+      if: github.event.inputs.force_deploy != 'true'
+      uses: trstringer/manual-approval@v1
+      with:
+        secret: ${{ github.TOKEN }}
+        approvers: ${{ secrets.PRODUCTION_APPROVERS }}
+        minimum-approvals: 2
+        issue-title: "Production Deployment Approval Required"
+        issue-body: |
+          Please review and approve the production deployment.
+          
+          **Deployment Details:**
+          - Environment: Production
+          - Image Tag: ${{ needs.determine-environment.outputs.image_tag }}
+          - Commit: ${{ github.sha }}
+          - Triggered by: ${{ github.actor }}
+          
+          **Pre-deployment Checklist:**
+          - [ ] All tests are passing
+          - [ ] Security scans completed
+          - [ ] Database migrations reviewed
+          - [ ] Rollback plan confirmed
+          - [ ] Monitoring alerts configured
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+        aws-region: ${{ secrets.AWS_REGION }}
+    
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+    
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name inventario-pymes-cluster-production
+    
+    - name: Create pre-deployment backup
+      run: |
+        # Trigger database backup before deployment
+        kubectl create job --from=cronjob/postgres-backup postgres-backup-pre-deploy-$(date +%s) -n inventario-pymes
+    
+    - name: Deploy to Kubernetes (Blue-Green)
+      run: |
+        # Update image tags
+        sed -i "s|{{DOCKER_REGISTRY}}|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}|g" deployment/kubernetes/deployments/*.yaml
+        sed -i "s|{{IMAGE_TAG}}|${{ needs.determine-environment.outputs.image_tag }}|g" deployment/kubernetes/deployments/*.yaml
+        
+        # Deploy with rolling update strategy
+        kubectl apply -f deployment/kubernetes/namespace.yaml
+        kubectl apply -f deployment/kubernetes/configmap.yaml
+        kubectl apply -f deployment/kubernetes/secrets.yaml
+        
+        # Deploy database first (if needed)
+        kubectl apply -f deployment/kubernetes/deployments/database-deployment.yaml
+        kubectl rollout status statefulset/postgres -n inventario-pymes --timeout=600s
+        
+        # Deploy backend
+        kubectl apply -f deployment/kubernetes/deployments/backend-deployment.yaml
+        kubectl rollout status deployment/backend -n inventario-pymes --timeout=600s
+        
+        # Deploy frontend
+        kubectl apply -f deployment/kubernetes/deployments/frontend-deployment.yaml
+        kubectl rollout status deployment/frontend -n inventario-pymes --timeout=600s
+        
+        # Update services and ingress
+        kubectl apply -f deployment/kubernetes/services/
+        kubectl apply -f deployment/kubernetes/ingress.yaml
+    
+    - name: Run comprehensive health checks
+      run: |
+        chmod +x deployment/scripts/health-check.sh
+        ./deployment/scripts/health-check.sh -e production -n inventario-pymes -v
+    
+    - name: Run production smoke tests
+      run: |
+        # Comprehensive smoke tests for production
+        curl -f https://inventario-pymes.com/health || exit 1
+        curl -f https://inventario-pymes.com/api/health || exit 1
+        curl -f https://inventario-pymes.com/api/ready || exit 1
+        
+        # Test key endpoints
+        curl -f -X POST https://inventario-pymes.com/api/auth/login \
+          -H "Content-Type: application/json" \
+          -d '{"email":"test@example.com","password":"invalid"}' \
+          -w "%{http_code}" | grep -q "401" || exit 1
+    
+    - name: Update deployment status
+      run: |
+        # Record successful deployment
+        kubectl annotate deployment/frontend deployment.kubernetes.io/revision-history-limit=10 -n inventario-pymes
+        kubectl annotate deployment/backend deployment.kubernetes.io/revision-history-limit=10 -n inventario-pymes
+
+  # ==================== POST-DEPLOYMENT TASKS ====================
+  
+  post-deployment:
+    name: Post-Deployment Tasks
+    runs-on: ubuntu-latest
+    needs: [determine-environment, deploy-staging, deploy-production]
+    if: always() && (needs.deploy-staging.result == 'success' || needs.deploy-production.result == 'success')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Update deployment tracking
+      run: |
+        echo "Deployment completed successfully"
+        echo "Environment: ${{ needs.determine-environment.outputs.environment }}"
+        echo "Image Tag: ${{ needs.determine-environment.outputs.image_tag }}"
+        echo "Commit: ${{ github.sha }}"
+        echo "Deployed by: ${{ github.actor }}"
+        echo "Deployment time: $(date -u)"
+    
+    - name: Send Slack notification
+      if: always()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#deployments'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        fields: repo,message,commit,author,action,eventName,ref,workflow
+        custom_payload: |
+          {
+            "text": "Deployment ${{ job.status }} for ${{ needs.determine-environment.outputs.environment }}",
+            "attachments": [{
+              "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
+              "fields": [
+                {
+                  "title": "Environment",
+                  "value": "${{ needs.determine-environment.outputs.environment }}",
+                  "short": true
+                },
+                {
+                  "title": "Image Tag",
+                  "value": "${{ needs.determine-environment.outputs.image_tag }}",
+                  "short": true
+                },
+                {
+                  "title": "Commit",
+                  "value": "${{ github.sha }}",
+                  "short": true
+                },
+                {
+                  "title": "Deployed by",
+                  "value": "${{ github.actor }}",
+                  "short": true
+                }
+              ]
+            }]
+          }
+    
+    - name: Create GitHub release
+      if: needs.determine-environment.outputs.environment == 'production' && startsWith(github.ref, 'refs/tags/')
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          ## Changes in this Release
+          
+          This release includes the following changes:
+          
+          - Deployed to production environment
+          - Image tag: ${{ needs.determine-environment.outputs.image_tag }}
+          - Commit: ${{ github.sha }}
+          
+          ## Deployment Information
+          
+          - Environment: Production
+          - Deployment time: ${{ github.event.head_commit.timestamp }}
+          - Deployed by: ${{ github.actor }}
+          
+          ## Health Check URLs
+          
+          - Application: https://inventario-pymes.com
+          - API Health: https://inventario-pymes.com/api/health
+          - API Documentation: https://inventario-pymes.com/api/docs
+        draft: false
+        prerelease: false
+
+  # ==================== ROLLBACK ON FAILURE ====================
+  
+  rollback:
+    name: Rollback on Failure
+    runs-on: ubuntu-latest
+    needs: [determine-environment, deploy-staging, deploy-production]
+    if: failure() && (needs.deploy-staging.result == 'failure' || needs.deploy-production.result == 'failure')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+    
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+    
+    - name: Update kubeconfig
+      run: |
+        if [[ "${{ needs.determine-environment.outputs.environment }}" == "production" ]]; then
+          aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name inventario-pymes-cluster-production
+          NAMESPACE="inventario-pymes"
+        else
+          aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name inventario-pymes-cluster-staging
+          NAMESPACE="inventario-pymes-staging"
+        fi
+        echo "NAMESPACE=$NAMESPACE" >> $GITHUB_ENV
+    
+    - name: Perform rollback
+      run: |
+        chmod +x deployment/scripts/rollback.sh
+        ./deployment/scripts/rollback.sh -e ${{ needs.determine-environment.outputs.environment }} -n ${{ env.NAMESPACE }} --force
+    
+    - name: Verify rollback
+      run: |
+        chmod +x deployment/scripts/health-check.sh
+        ./deployment/scripts/health-check.sh -e ${{ needs.determine-environment.outputs.environment }} -n ${{ env.NAMESPACE }}
+    
+    - name: Send rollback notification
+      uses: 8398a7/action-slack@v3
+      with:
+        status: 'warning'
+        channel: '#deployments'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        custom_payload: |
+          {
+            "text": "🚨 Deployment failed and rollback initiated",
+            "attachments": [{
+              "color": "warning",
+              "fields": [
+                {
+                  "title": "Environment",
+                  "value": "${{ needs.determine-environment.outputs.environment }}",
+                  "short": true
+                },
+                {
+                  "title": "Failed Deployment",
+                  "value": "${{ needs.determine-environment.outputs.image_tag }}",
+                  "short": true
+                },
+                {
+                  "title": "Action Required",
+                  "value": "Please investigate the deployment failure",
+                  "short": false
+                }
+              ]
+            }]
+          }

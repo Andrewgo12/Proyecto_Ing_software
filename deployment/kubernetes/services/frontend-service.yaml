@@ -1,0 +1,80 @@
+# Frontend Services for Sistema de Inventario PYMES
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: inventario-pymes
+  labels:
+    app.kubernetes.io/name: inventario-pymes
+    app.kubernetes.io/component: frontend-service
+    app.kubernetes.io/version: "1.0.0"
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app.kubernetes.io/name: inventario-pymes
+    app.kubernetes.io/component: frontend
+  sessionAffinity: None
+
+---
+# Service for Frontend Nginx metrics
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-metrics
+  namespace: inventario-pymes
+  labels:
+    app.kubernetes.io/name: inventario-pymes
+    app.kubernetes.io/component: frontend-metrics
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9113"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9113
+    targetPort: 9113
+    protocol: TCP
+    name: metrics
+  selector:
+    app.kubernetes.io/name: inventario-pymes
+    app.kubernetes.io/component: frontend
+
+---
+# LoadBalancer service for external access (optional)
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-loadbalancer
+  namespace: inventario-pymes
+  labels:
+    app.kubernetes.io/name: inventario-pymes
+    app.kubernetes.io/component: frontend-loadbalancer
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:region:account:certificate/cert-id"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  - port: 443
+    targetPort: 8080
+    protocol: TCP
+    name: https
+  selector:
+    app.kubernetes.io/name: inventario-pymes
+    app.kubernetes.io/component: frontend
+  loadBalancerSourceRanges:
+  - 0.0.0.0/0  # Restrict this in production

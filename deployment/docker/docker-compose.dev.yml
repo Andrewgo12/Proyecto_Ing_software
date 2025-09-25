@@ -1,0 +1,256 @@
+# Docker Compose for Development Environment
+# Sistema de Inventario PYMES - Development Configuration
+
+version: '3.8'
+
+services:
+  # Development Database with debug settings
+  database:
+    extends:
+      file: docker-compose.yml
+      service: database
+    environment:
+      POSTGRES_DB: inventario_pymes_dev
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: dev_password
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+      - postgres_backups_dev:/var/lib/postgresql/backups
+      - ./logs/database-dev:/var/log/postgresql
+      - ./database/seeds/demo-data.sql:/docker-entrypoint-initdb.d/03-demo-data.sql
+      - ./database/seeds/test-data.sql:/docker-entrypoint-initdb.d/04-test-data.sql
+    ports:
+      - "5433:5432"  # Different port to avoid conflicts
+    command: >
+      postgres
+      -c log_statement=all
+      -c log_duration=on
+      -c log_min_duration_statement=0
+      -c log_connections=on
+      -c log_disconnections=on
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Development Redis with debug mode
+  redis:
+    extends:
+      file: docker-compose.yml
+      service: redis
+    command: redis-server --appendonly yes --requirepass dev_redis --loglevel debug
+    ports:
+      - "6380:6379"  # Different port to avoid conflicts
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.25'
+
+  # Development Backend with hot reload
+  backend:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.backend
+      target: builder  # Use builder stage for development
+    container_name: inventario-pymes-api-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_NAME: inventario_pymes_dev
+      DB_USER: dev_user
+      DB_PASSWORD: dev_password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: dev_redis
+      JWT_SECRET: dev-jwt-secret-key-not-for-production
+      JWT_EXPIRES_IN: 7d
+      CORS_ORIGIN: "http://localhost:3000,http://localhost:3001"
+      LOG_LEVEL: debug
+      RATE_LIMIT_WINDOW: 15
+      RATE_LIMIT_MAX: 1000  # Higher limit for development
+      DEBUG: "app:*"
+      ENABLE_SWAGGER: true
+      ENABLE_PLAYGROUND: true
+      HOT_RELOAD: true
+    volumes:
+      - ../../src/backend:/app:cached  # Mount source for hot reload
+      - /app/node_modules  # Prevent overwriting node_modules
+      - ./logs/backend-dev:/app/logs
+      - ./uploads-dev:/app/uploads
+      - ./temp-dev:/app/temp
+    ports:
+      - "3001:3001"
+      - "9229:9229"  # Node.js debug port
+    networks:
+      - inventario-network
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: npm run dev  # Use development script with nodemon
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+
+  # Development Frontend with hot reload
+  frontend:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.frontend
+      target: builder  # Use builder stage for development
+      args:
+        REACT_APP_API_URL: http://localhost:3001/api
+        REACT_APP_VERSION: dev
+        REACT_APP_ENVIRONMENT: development
+    container_name: inventario-pymes-web-dev
+    restart: unless-stopped
+    environment:
+      CHOKIDAR_USEPOLLING: true  # Enable polling for file changes
+      FAST_REFRESH: true
+      GENERATE_SOURCEMAP: true
+    volumes:
+      - ../../src/frontend:/app:cached  # Mount source for hot reload
+      - /app/node_modules  # Prevent overwriting node_modules
+      - /app/build  # Prevent overwriting build folder
+    ports:
+      - "3000:3000"
+    networks:
+      - inventario-network
+    depends_on:
+      - backend
+    command: npm start  # Use development server
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  # Development tools and utilities
+  
+  # pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: inventario-pymes-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@inventario-pymes.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./config/pgadmin/servers.json:/pgadmin4/servers.json:ro
+    ports:
+      - "5050:80"
+    networks:
+      - inventario-network
+    depends_on:
+      - database
+
+  # Redis Commander for Redis management
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: inventario-pymes-redis-commander
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379:0:dev_redis
+    ports:
+      - "8081:8081"
+    networks:
+      - inventario-network
+    depends_on:
+      - redis
+
+  # MailHog for email testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: inventario-pymes-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP server
+      - "8025:8025"  # Web UI
+    networks:
+      - inventario-network
+
+  # Swagger UI for API documentation
+  swagger-ui:
+    image: swaggerapi/swagger-ui:latest
+    container_name: inventario-pymes-swagger
+    restart: unless-stopped
+    environment:
+      SWAGGER_JSON: /api-specs/openapi.yaml
+      BASE_URL: /swagger
+    volumes:
+      - ../../api-specs:/api-specs:ro
+    ports:
+      - "8080:8080"
+    networks:
+      - inventario-network
+
+  # File watcher for automatic rebuilds
+  file-watcher:
+    image: node:18-alpine
+    container_name: inventario-pymes-watcher
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ../..:/app:cached
+    command: >
+      sh -c "
+        npm install -g nodemon &&
+        nodemon --watch src --watch database --ext js,jsx,ts,tsx,sql,json,md --exec 'echo File changed at $(date)'
+      "
+    networks:
+      - inventario-network
+
+  # Development proxy with live reload
+  dev-proxy:
+    image: nginx:alpine
+    container_name: inventario-pymes-dev-proxy
+    restart: unless-stopped
+    volumes:
+      - ./config/nginx/dev.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./logs/nginx-dev:/var/log/nginx
+    ports:
+      - "8000:80"
+    networks:
+      - inventario-network
+    depends_on:
+      - frontend
+      - backend
+
+# Development-specific networks
+networks:
+  inventario-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+
+# Development volumes
+volumes:
+  postgres_data_dev:
+    driver: local
+  postgres_backups_dev:
+    driver: local
+  redis_data_dev:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+# Development environment variables file
+# Create a .env.dev file with the following variables:
+# DB_PASSWORD=dev_password
+# REDIS_PASSWORD=dev_redis
+# JWT_SECRET=dev-jwt-secret-key-not-for-production
+# LOG_LEVEL=debug
+# REACT_APP_API_URL=http://localhost:3001/api
+# REACT_APP_VERSION=dev
+# REACT_APP_ENVIRONMENT=development

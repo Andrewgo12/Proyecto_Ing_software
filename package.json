@@ -1,0 +1,84 @@
+{
+  "name": "sistema-inventario-pymes",
+  "version": "1.0.0",
+  "description": "Sistema completo de gestión de inventario para PYMES",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd src/backend && npm run dev",
+    "dev:frontend": "cd src/frontend && npm run dev",
+    "dev:mobile": "cd src/mobile && npx expo start",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "cd src/frontend && npm run build",
+    "build:backend": "cd src/backend && npm run build",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd src/backend && npm test",
+    "test:frontend": "cd src/frontend && npm test",
+    "test:mobile": "cd src/mobile && npm test",
+    "test:integration": "cd tests && npm run test:integration",
+    "test:e2e": "cypress run",
+    "test:coverage": "npm run test:backend -- --coverage && npm run test:frontend -- --coverage",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd src/backend && npm run lint",
+    "lint:frontend": "cd src/frontend && npm run lint",
+    "lint:fix": "npm run lint:backend -- --fix && npm run lint:frontend -- --fix",
+    "migrate": "cd src/backend && npm run migrate",
+    "seed": "cd src/backend && npm run seed",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "k8s:deploy": "kubectl apply -f deployment/kubernetes/",
+    "k8s:delete": "kubectl delete -f deployment/kubernetes/",
+    "terraform:init": "cd deployment/terraform && terraform init",
+    "terraform:plan": "cd deployment/terraform && terraform plan",
+    "terraform:apply": "cd deployment/terraform && terraform apply",
+    "docs:serve": "cd docs && python -m http.server 8080",
+    "setup": "npm run setup:backend && npm run setup:frontend && npm run setup:mobile",
+    "setup:backend": "cd src/backend && npm install && cp .env.example .env",
+    "setup:frontend": "cd src/frontend && npm install",
+    "setup:mobile": "cd src/mobile && npm install",
+    "clean": "npm run clean:backend && npm run clean:frontend && npm run clean:mobile",
+    "clean:backend": "cd src/backend && rm -rf node_modules dist",
+    "clean:frontend": "cd src/frontend && rm -rf node_modules dist",
+    "clean:mobile": "cd src/mobile && rm -rf node_modules",
+    "postinstall": "npm run setup"
+  },
+  "keywords": [
+    "inventory",
+    "pymes",
+    "stock",
+    "management",
+    "react",
+    "nodejs",
+    "postgresql",
+    "mobile",
+    "barcode"
+  ],
+  "author": "Inventario PYMES Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/inventario-pymes/sistema-inventario-pymes.git"
+  },
+  "bugs": {
+    "url": "https://github.com/inventario-pymes/sistema-inventario-pymes/issues"
+  },
+  "homepage": "https://inventariopymes.com",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0",
+    "cypress": "^12.5.1",
+    "eslint": "^8.34.0",
+    "prettier": "^2.8.4"
+  },
+  "workspaces": [
+    "src/backend",
+    "src/frontend",
+    "src/mobile",
+    "src/shared"
+  ]
+}

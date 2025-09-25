@@ -1,0 +1,491 @@
+@startuml Sistema_Inventario_PYMES_Class_Diagram
+
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam classBackgroundColor #F8F9FA
+skinparam classBorderColor #DEE2E6
+skinparam arrowColor #6C757D
+
+title Sistema de Inventario PYMES - Diagrama de Clases
+
+package "Authentication & Authorization" {
+    class User {
+        +id: UUID
+        +email: String
+        +passwordHash: String
+        +firstName: String
+        +lastName: String
+        +role: UserRole
+        +isActive: Boolean
+        +emailVerified: Boolean
+        +lastLoginAt: DateTime
+        +createdAt: DateTime
+        +updatedAt: DateTime
+        --
+        +authenticate(password: String): Boolean
+        +hasPermission(permission: String): Boolean
+        +getFullName(): String
+        +updateLastLogin(): void
+    }
+
+    enum UserRole {
+        ADMIN
+        MANAGER
+        WAREHOUSE
+        SALES
+        VIEWER
+    }
+
+    class Session {
+        +id: UUID
+        +userId: UUID
+        +token: String
+        +expiresAt: DateTime
+        +ipAddress: String
+        +userAgent: String
+        +isActive: Boolean
+        --
+        +isValid(): Boolean
+        +refresh(): void
+        +revoke(): void
+    }
+}
+
+package "Product Management" {
+    class Product {
+        +id: UUID
+        +sku: String
+        +name: String
+        +description: String
+        +categoryId: UUID
+        +unitPrice: Decimal
+        +costPrice: Decimal
+        +unitOfMeasure: String
+        +barcode: String
+        +weight: Decimal
+        +dimensions: JSON
+        +isActive: Boolean
+        +isTrackable: Boolean
+        +minStockLevel: Decimal
+        +maxStockLevel: Decimal
+        +reorderPoint: Decimal
+        +createdAt: DateTime
+        +updatedAt: DateTime
+        --
+        +calculateMargin(): Decimal
+        +isLowStock(location: Location): Boolean
+        +getTotalStock(): Decimal
+        +getStockByLocation(location: Location): Decimal
+    }
+
+    class Category {
+        +id: UUID
+        +name: String
+        +slug: String
+        +description: String
+        +parentId: UUID
+        +level: Integer
+        +path: String
+        +sortOrder: Integer
+        +isActive: Boolean
+        +createdAt: DateTime
+        +updatedAt: DateTime
+        --
+        +getChildren(): List<Category>
+        +getParent(): Category
+        +getFullPath(): String
+        +isDescendantOf(category: Category): Boolean
+    }
+
+    class Supplier {
+        +id: UUID
+        +supplierCode: String
+        +companyName: String
+        +tradeName: String
+        +taxId: String
+        +supplierType: SupplierType
+        +status: SupplierStatus
+        +contactName: String
+        +contactEmail: String
+        +contactPhone: String
+        +address: Address
+        +paymentTerms: String
+        +creditLimit: Decimal
+        +leadTimeDays: Integer
+        +qualityRating: Decimal
+        +deliveryPerformance: Decimal
+        +createdAt: DateTime
+        +updatedAt: DateTime
+        --
+        +calculatePerformanceScore(): Decimal
+        +isActive(): Boolean
+        +getActiveProducts(): List<Product>
+    }
+
+    enum SupplierType {
+        MANUFACTURER
+        DISTRIBUTOR
+        WHOLESALER
+        RETAILER
+    }
+
+    enum SupplierStatus {
+        ACTIVE
+        INACTIVE
+        SUSPENDED
+        BLACKLISTED
+    }
+}
+
+package "Inventory Management" {
+    class Location {
+        +id: UUID
+        +code: String
+        +name: String
+        +type: LocationType
+        +description: String
+        +address: Address
+        +managerId: UUID
+        +parentLocationId: UUID
+        +isActive: Boolean
+        +allowsNegativeStock: Boolean
+        +storageCapacity: Decimal
+        +operatingHours: JSON
+        +createdAt: DateTime
+        +updatedAt: DateTime
+        --
+        +getTotalValue(): Decimal
+        +getProductCount(): Integer
+        +getCapacityUtilization(): Decimal
+        +isOperational(): Boolean
+    }
+
+    enum LocationType {
+        WAREHOUSE
+        STORE
+        TRANSIT
+        SUPPLIER
+        CUSTOMER
+        VIRTUAL
+    }
+
+    class StockLevel {
+        +id: UUID
+        +productId: UUID
+        +locationId: UUID
+        +quantity: Decimal
+        +reservedQuantity: Decimal
+        +availableQuantity: Decimal (computed)
+        +allocatedQuantity: Decimal
+        +onOrderQuantity: Decimal
+        +minStock: Decimal
+        +maxStock: Decimal
+        +reorderPoint: Decimal
+        +safetyStock: Decimal
+        +averageCost: Decimal
+        +lastCost: Decimal
+        +totalValue: Decimal (computed)
+        +lastMovementDate: DateTime
+        +lastCountDate: DateTime
+        +cycleCountDueDate: Date
+        +updatedAt: DateTime
+        --
+        +isLowStock(): Boolean
+        +isOutOfStock(): Boolean
+        +isOverstock(): Boolean
+        +needsReorder(): Boolean
+        +calculateTurnoverRate(): Decimal
+    }
+
+    class InventoryMovement {
+        +id: UUID
+        +movementNumber: String
+        +productId: UUID
+        +locationId: UUID
+        +movementType: MovementType
+        +movementStatus: MovementStatus
+        +quantity: Decimal
+        +unitCost: Decimal
+        +totalCost: Decimal (computed)
+        +referenceType: String
+        +referenceId: UUID
+        +referenceNumber: String
+        +destinationLocationId: UUID
+        +reasonCode: String
+        +notes: String
+        +supplierId: UUID
+        +processedAt: DateTime
+        +processedBy: UUID
+        +approvedBy: UUID
+        +createdAt: DateTime
+        --
+        +isInbound(): Boolean
+        +isOutbound(): Boolean
+        +isTransfer(): Boolean
+        +calculateImpact(): Decimal
+        +canBeReversed(): Boolean
+        +reverse(reason: String): InventoryMovement
+    }
+
+    enum MovementType {
+        IN
+        OUT
+        TRANSFER
+        ADJUSTMENT
+        RESERVATION
+        ALLOCATION
+        RETURN
+        DAMAGE
+        EXPIRED
+        LOST
+        FOUND
+    }
+
+    enum MovementStatus {
+        PENDING
+        PROCESSING
+        COMPLETED
+        CANCELLED
+        FAILED
+    }
+}
+
+package "Alerts & Notifications" {
+    class Alert {
+        +id: UUID
+        +alertCode: String
+        +alertType: AlertType
+        +severity: AlertSeverity
+        +status: AlertStatus
+        +title: String
+        +message: String
+        +productId: UUID
+        +locationId: UUID
+        +currentValue: Decimal
+        +thresholdValue: Decimal
+        +variancePercentage: Decimal
+        +requiresAction: Boolean
+        +escalationLevel: Integer
+        +acknowledgedBy: UUID
+        +acknowledgedAt: DateTime
+        +resolvedBy: UUID
+        +resolvedAt: DateTime
+        +expiresAt: DateTime
+        +createdAt: DateTime
+        --
+        +isActive(): Boolean
+        +isOverdue(): Boolean
+        +acknowledge(user: User): void
+        +resolve(user: User, notes: String): void
+        +escalate(): void
+    }
+
+    enum AlertType {
+        LOW_STOCK
+        OUT_OF_STOCK
+        OVERSTOCK
+        EXPIRY_WARNING
+        EXPIRED
+        SLOW_MOVING
+        FAST_MOVING
+        NEGATIVE_STOCK
+        CYCLE_COUNT_DUE
+        SYSTEM_ERROR
+    }
+
+    enum AlertSeverity {
+        LOW
+        MEDIUM
+        HIGH
+        CRITICAL
+    }
+
+    enum AlertStatus {
+        ACTIVE
+        ACKNOWLEDGED
+        RESOLVED
+        DISMISSED
+        EXPIRED
+    }
+
+    class Notification {
+        +id: UUID
+        +notificationType: String
+        +title: String
+        +message: String
+        +recipientUserId: UUID
+        +recipientRole: String
+        +data: JSON
+        +isRead: Boolean
+        +isSent: Boolean
+        +sentAt: DateTime
+        +readAt: DateTime
+        +expiresAt: DateTime
+        +createdAt: DateTime
+        --
+        +markAsRead(): void
+        +markAsSent(): void
+        +isExpired(): Boolean
+    }
+}
+
+package "Reporting & Analytics" {
+    class Report {
+        +id: UUID
+        +reportType: ReportType
+        +name: String
+        +description: String
+        +parameters: JSON
+        +filters: JSON
+        +generatedBy: UUID
+        +generatedAt: DateTime
+        +format: ReportFormat
+        +filePath: String
+        +status: ReportStatus
+        +expiresAt: DateTime
+        --
+        +generate(): void
+        +download(): File
+        +schedule(cron: String): void
+        +isReady(): Boolean
+    }
+
+    enum ReportType {
+        INVENTORY_SUMMARY
+        STOCK_MOVEMENT
+        LOW_STOCK_REPORT
+        ABC_ANALYSIS
+        INVENTORY_VALUATION
+        SUPPLIER_PERFORMANCE
+        PRODUCT_PERFORMANCE
+    }
+
+    enum ReportFormat {
+        PDF
+        EXCEL
+        CSV
+        JSON
+    }
+
+    enum ReportStatus {
+        PENDING
+        GENERATING
+        COMPLETED
+        FAILED
+        EXPIRED
+    }
+
+    class Dashboard {
+        +id: UUID
+        +userId: UUID
+        +name: String
+        +layout: JSON
+        +widgets: JSON
+        +isDefault: Boolean
+        +isPublic: Boolean
+        +createdAt: DateTime
+        +updatedAt: DateTime
+        --
+        +addWidget(widget: Widget): void
+        +removeWidget(widgetId: UUID): void
+        +updateLayout(layout: JSON): void
+        +clone(): Dashboard
+    }
+
+    class KPI {
+        +id: UUID
+        +name: String
+        +description: String
+        +formula: String
+        +value: Decimal
+        +previousValue: Decimal
+        +changePercentage: Decimal
+        +target: Decimal
+        +unit: String
+        +calculatedAt: DateTime
+        --
+        +calculate(): Decimal
+        +isOnTarget(): Boolean
+        +getTrend(): Trend
+    }
+}
+
+package "Audit & Security" {
+    class AuditLog {
+        +id: UUID
+        +tableName: String
+        +recordId: UUID
+        +operation: AuditOperation
+        +oldValues: JSON
+        +newValues: JSON
+        +changedFields: List<String>
+        +userId: UUID
+        +ipAddress: String
+        +userAgent: String
+        +sessionId: String
+        +createdAt: DateTime
+        --
+        +getChangeSummary(): String
+        +wasFieldChanged(field: String): Boolean
+    }
+
+    enum AuditOperation {
+        INSERT
+        UPDATE
+        DELETE
+        LOGIN
+        LOGOUT
+        EXPORT
+        IMPORT
+    }
+}
+
+' Relationships
+User ||--o{ Session : "has"
+User }o--|| UserRole : "has"
+
+Product }o--|| Category : "belongs to"
+Product ||--o{ StockLevel : "has stock in"
+Product ||--o{ InventoryMovement : "involved in"
+
+Category ||--o{ Category : "parent/child"
+
+Supplier ||--o{ InventoryMovement : "supplies"
+Supplier }o--|| SupplierType : "is type"
+Supplier }o--|| SupplierStatus : "has status"
+
+Location ||--o{ StockLevel : "contains"
+Location ||--o{ InventoryMovement : "origin/destination"
+Location }o--|| LocationType : "is type"
+Location ||--o{ Location : "parent/child"
+
+StockLevel }o--|| Product : "tracks"
+StockLevel }o--|| Location : "at"
+
+InventoryMovement }o--|| Product : "moves"
+InventoryMovement }o--|| Location : "from/to"
+InventoryMovement }o--|| MovementType : "type"
+InventoryMovement }o--|| MovementStatus : "status"
+InventoryMovement }o--o| User : "processed by"
+InventoryMovement }o--o| Supplier : "from"
+
+Alert }o--|| AlertType : "type"
+Alert }o--|| AlertSeverity : "severity"
+Alert }o--|| AlertStatus : "status"
+Alert }o--o| Product : "about"
+Alert }o--o| Location : "at"
+Alert }o--o| User : "acknowledged/resolved by"
+
+Notification }o--|| User : "sent to"
+
+Report }o--|| ReportType : "type"
+Report }o--|| ReportFormat : "format"
+Report }o--|| ReportStatus : "status"
+Report }o--|| User : "generated by"
+
+Dashboard }o--|| User : "belongs to"
+
+AuditLog }o--|| AuditOperation : "operation"
+AuditLog }o--o| User : "performed by"
+
+@enduml

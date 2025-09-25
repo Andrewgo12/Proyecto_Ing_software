@@ -1,0 +1,324 @@
+# Docker Compose for Production Environment
+# Sistema de Inventario PYMES - Production Configuration
+
+version: '3.8'
+
+services:
+  # Database with production optimizations
+  database:
+    extends:
+      file: docker-compose.yml
+      service: database
+    environment:
+      POSTGRES_DB: inventario_pymes_prod
+      POSTGRES_USER: inventario_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+      - postgres_backups_prod:/var/lib/postgresql/backups
+      - /var/log/inventario-pymes/database:/var/log/postgresql
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 1G
+          cpus: '1.0'
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  # Redis with persistence and clustering
+  redis:
+    extends:
+      file: docker-compose.yml
+      service: redis
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass_file /run/secrets/redis_password
+    secrets:
+      - redis_password
+    volumes:
+      - redis_data_prod:/data
+      - ./config/redis-prod.conf:/usr/local/etc/redis/redis.conf:ro
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.5'
+
+  # Backend API with production settings
+  backend:
+    extends:
+      file: docker-compose.yml
+      service: backend
+    environment:
+      NODE_ENV: production
+      DB_HOST: database
+      DB_NAME: inventario_pymes_prod
+      DB_USER: inventario_user
+      DB_PASSWORD_FILE: /run/secrets/db_password
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
+      JWT_SECRET_FILE: /run/secrets/jwt_secret
+      LOG_LEVEL: warn
+      RATE_LIMIT_WINDOW: 15
+      RATE_LIMIT_MAX: 50
+      ENABLE_CORS: false
+      TRUST_PROXY: true
+      SESSION_SECURE: true
+      COOKIE_SECURE: true
+      HELMET_ENABLED: true
+      COMPRESSION_ENABLED: true
+      MONITORING_ENABLED: true
+    secrets:
+      - db_password
+      - redis_password
+      - jwt_secret
+      - email_credentials
+    volumes:
+      - /var/log/inventario-pymes/backend:/app/logs
+      - /var/uploads/inventario-pymes:/app/uploads
+      - backend_temp:/app/temp
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        monitor: 60s
+        max_failure_ratio: 0.3
+
+  # Frontend with production optimizations
+  frontend:
+    extends:
+      file: docker-compose.yml
+      service: frontend
+    build:
+      args:
+        REACT_APP_API_URL: https://api.inventario-pymes.com/api
+        REACT_APP_VERSION: ${APP_VERSION}
+        REACT_APP_ENVIRONMENT: production
+        REACT_APP_SENTRY_DSN: ${SENTRY_DSN}
+        REACT_APP_ANALYTICS_ID: ${ANALYTICS_ID}
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # Production Nginx with SSL and caching
+  nginx:
+    extends:
+      file: docker-compose.yml
+      service: nginx
+    volumes:
+      - ./config/nginx/nginx-prod.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx/prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/nginx/ssl:ro
+      - /var/log/inventario-pymes/nginx:/var/log/nginx
+      - nginx_cache:/var/cache/nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+
+  # Production monitoring stack
+  prometheus:
+    extends:
+      file: docker-compose.yml
+      service: prometheus
+    volumes:
+      - ./config/prometheus/prometheus-prod.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data_prod:/prometheus
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+  grafana:
+    extends:
+      file: docker-compose.yml
+      service: grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD_FILE: /run/secrets/grafana_password
+      GF_SERVER_DOMAIN: monitoring.inventario-pymes.com
+      GF_SERVER_ROOT_URL: https://monitoring.inventario-pymes.com
+      GF_SECURITY_COOKIE_SECURE: true
+      GF_SECURITY_STRICT_TRANSPORT_SECURITY: true
+    secrets:
+      - grafana_password
+    volumes:
+      - grafana_data_prod:/var/lib/grafana
+      - ./config/grafana/provisioning-prod:/etc/grafana/provisioning:ro
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Log aggregation
+  fluentd:
+    image: fluent/fluentd:v1.16-debian-1
+    container_name: inventario-pymes-fluentd
+    restart: unless-stopped
+    volumes:
+      - ./config/fluentd/fluent.conf:/fluentd/etc/fluent.conf:ro
+      - /var/log/inventario-pymes:/var/log/inventario-pymes:ro
+      - fluentd_data:/fluentd/log
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    networks:
+      - inventario-network
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # Backup service
+  backup:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.backup
+    container_name: inventario-pymes-backup
+    restart: unless-stopped
+    environment:
+      BACKUP_SCHEDULE: "0 2 * * *"  # Daily at 2 AM
+      DB_HOST: database
+      DB_NAME: inventario_pymes_prod
+      DB_USER: inventario_user
+      DB_PASSWORD_FILE: /run/secrets/db_password
+      S3_BUCKET: ${BACKUP_S3_BUCKET}
+      AWS_ACCESS_KEY_ID_FILE: /run/secrets/aws_access_key
+      AWS_SECRET_ACCESS_KEY_FILE: /run/secrets/aws_secret_key
+      BACKUP_RETENTION_DAYS: 30
+      ENCRYPTION_ENABLED: true
+      ENCRYPTION_KEY_FILE: /run/secrets/backup_encryption_key
+    secrets:
+      - db_password
+      - aws_access_key
+      - aws_secret_key
+      - backup_encryption_key
+    volumes:
+      - postgres_backups_prod:/backups
+      - /var/log/inventario-pymes/backup:/var/log/backup
+    networks:
+      - inventario-network
+    depends_on:
+      - database
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+# Production networks with custom configuration
+networks:
+  inventario-network:
+    driver: overlay
+    attachable: true
+    ipam:
+      config:
+        - subnet: 10.0.1.0/24
+
+# Production volumes with specific drivers
+volumes:
+  postgres_data_prod:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/inventario-pymes/postgres
+  postgres_backups_prod:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/backups/inventario-pymes
+  redis_data_prod:
+    driver: local
+  prometheus_data_prod:
+    driver: local
+  grafana_data_prod:
+    driver: local
+  nginx_cache:
+    driver: local
+  fluentd_data:
+    driver: local
+  backend_temp:
+    driver: tmpfs
+    driver_opts:
+      size: 100m
+
+# Production secrets
+secrets:
+  db_password:
+    external: true
+  redis_password:
+    external: true
+  jwt_secret:
+    external: true
+  email_credentials:
+    external: true
+  grafana_password:
+    external: true
+  aws_access_key:
+    external: true
+  aws_secret_key:
+    external: true
+  backup_encryption_key:
+    external: true
+
+# Production configs
+configs:
+  nginx_config:
+    external: true
+  prometheus_config:
+    external: true
+  grafana_config:
+    external: true

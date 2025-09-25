@@ -1,0 +1,91 @@
+# Database Dockerfile for Sistema de Inventario PYMES
+# Custom PostgreSQL image with pre-loaded schema and data
+
+FROM postgres:15-alpine
+
+# Install additional packages
+RUN apk update && apk upgrade && apk add --no-cache \
+    curl \
+    && rm -rf /var/cache/apk/*
+
+# Set environment variables
+ENV POSTGRES_DB=inventario_pymes
+ENV POSTGRES_USER=postgres
+ENV POSTGRES_PASSWORD=postgres
+ENV PGDATA=/var/lib/postgresql/data/pgdata
+
+# Create directories for custom scripts and backups
+RUN mkdir -p /docker-entrypoint-initdb.d \
+             /var/lib/postgresql/backups \
+             /var/lib/postgresql/scripts
+
+# Copy database initialization scripts
+COPY database/schemas/database-schema.sql /docker-entrypoint-initdb.d/01-schema.sql
+COPY database/migrations/ /docker-entrypoint-initdb.d/migrations/
+COPY database/seeds/production-categories.sql /docker-entrypoint-initdb.d/02-categories.sql
+COPY database/seeds/demo-data.sql /docker-entrypoint-initdb.d/03-demo-data.sql
+COPY database/schemas/views.sql /docker-entrypoint-initdb.d/04-views.sql
+COPY database/schemas/stored-procedures.sql /docker-entrypoint-initdb.d/05-procedures.sql
+COPY database/performance/performance-indexes.sql /docker-entrypoint-initdb.d/06-indexes.sql
+
+# Copy backup and maintenance scripts
+COPY database/backups/backup-script.sh /var/lib/postgresql/scripts/
+COPY database/backups/restore-script.sh /var/lib/postgresql/scripts/
+
+# Copy custom initialization script
+COPY deployment/docker/init-database.sh /docker-entrypoint-initdb.d/99-init-custom.sh
+
+# Make scripts executable
+RUN chmod +x /var/lib/postgresql/scripts/*.sh \
+    && chmod +x /docker-entrypoint-initdb.d/99-init-custom.sh
+
+# Set proper ownership
+RUN chown -R postgres:postgres /var/lib/postgresql/backups \
+    && chown -R postgres:postgres /var/lib/postgresql/scripts
+
+# Create custom postgresql.conf for better performance
+RUN echo "# Custom PostgreSQL configuration for Inventario PYMES" > /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "max_connections = 200" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "shared_buffers = 256MB" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "effective_cache_size = 1GB" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "maintenance_work_mem = 64MB" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "checkpoint_completion_target = 0.9" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "wal_buffers = 16MB" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "default_statistics_target = 100" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "random_page_cost = 1.1" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "effective_io_concurrency = 200" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "work_mem = 4MB" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "min_wal_size = 1GB" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "max_wal_size = 4GB" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "max_worker_processes = 8" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "max_parallel_workers_per_gather = 4" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "max_parallel_workers = 8" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "max_parallel_maintenance_workers = 4" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "log_destination = 'stderr'" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "logging_collector = on" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "log_directory = 'log'" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "log_rotation_age = 1d" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "log_rotation_size = 100MB" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "log_min_duration_statement = 1000" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "log_checkpoints = on" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "log_connections = on" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "log_disconnections = on" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "log_lock_waits = on" >> /usr/local/share/postgresql/postgresql.conf.sample.custom && \
+    echo "log_temp_files = 10MB" >> /usr/local/share/postgresql/postgresql.conf.sample.custom
+
+# Expose PostgreSQL port
+EXPOSE 5432
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD pg_isready -U $POSTGRES_USER -d $POSTGRES_DB || exit 1
+
+# Volume for persistent data
+VOLUME ["/var/lib/postgresql/data", "/var/lib/postgresql/backups"]
+
+# Labels for metadata
+LABEL maintainer="Sistema de Inventario PYMES Team"
+LABEL version="1.0.0"
+LABEL description="PostgreSQL database with pre-configured schema for inventory management system"
+LABEL org.opencontainers.image.source="https://github.com/inventario-pymes/database"

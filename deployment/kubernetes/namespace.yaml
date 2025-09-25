@@ -1,0 +1,283 @@
+# Kubernetes Namespace for Sistema de Inventario PYMES
+# Creates isolated environment for the application
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: inventario-pymes
+  labels:
+    name: inventario-pymes
+    app.kubernetes.io/name: inventario-pymes
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/component: namespace
+    app.kubernetes.io/part-of: inventario-pymes-system
+    app.kubernetes.io/managed-by: kubectl
+    environment: production
+  annotations:
+    description: "Namespace for Sistema de Inventario PYMES application"
+    contact: "admin@inventario-pymes.com"
+    created-by: "DevOps Team"
+    
+---
+# Resource Quota for the namespace
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: inventario-pymes-quota
+  namespace: inventario-pymes
+  labels:
+    app.kubernetes.io/name: inventario-pymes
+    app.kubernetes.io/component: resource-quota
+spec:
+  hard:
+    # Compute resources
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.cpu: "8"
+    limits.memory: 16Gi
+    
+    # Storage resources
+    requests.storage: 100Gi
+    persistentvolumeclaims: "10"
+    
+    # Object counts
+    pods: "20"
+    services: "10"
+    secrets: "20"
+    configmaps: "20"
+    deployments.apps: "10"
+    statefulsets.apps: "5"
+    jobs.batch: "10"
+    cronjobs.batch: "5"
+    
+    # Network resources
+    services.loadbalancers: "2"
+    services.nodeports: "5"
+
+---
+# Limit Range for default resource limits
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: inventario-pymes-limits
+  namespace: inventario-pymes
+  labels:
+    app.kubernetes.io/name: inventario-pymes
+    app.kubernetes.io/component: limit-range
+spec:
+  limits:
+  # Default limits for containers
+  - default:
+      cpu: 500m
+      memory: 512Mi
+    defaultRequest:
+      cpu: 100m
+      memory: 128Mi
+    type: Container
+    
+  # Limits for pods
+  - max:
+      cpu: "2"
+      memory: 4Gi
+    min:
+      cpu: 50m
+      memory: 64Mi
+    type: Pod
+    
+  # Limits for persistent volume claims
+  - max:
+      storage: 50Gi
+    min:
+      storage: 1Gi
+    type: PersistentVolumeClaim
+
+---
+# Network Policy for namespace isolation
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: inventario-pymes-network-policy
+  namespace: inventario-pymes
+  labels:
+    app.kubernetes.io/name: inventario-pymes
+    app.kubernetes.io/component: network-policy
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  # Ingress rules
+  ingress:
+  # Allow traffic from ingress controller
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 3001
+      
+  # Allow internal communication within namespace
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: inventario-pymes
+    ports:
+    - protocol: TCP
+      port: 5432  # PostgreSQL
+    - protocol: TCP
+      port: 6379  # Redis
+    - protocol: TCP
+      port: 3001  # Backend API
+    - protocol: TCP
+      port: 8080  # Frontend
+      
+  # Allow monitoring from prometheus namespace
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 9090  # Metrics endpoint
+      
+  # Egress rules
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+      
+  # Allow HTTPS traffic for external APIs
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+      
+  # Allow HTTP traffic for external APIs
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 80
+      
+  # Allow SMTP for email notifications
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 587
+    - protocol: TCP
+      port: 465
+      
+  # Allow internal communication
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: inventario-pymes
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 3001
+    - protocol: TCP
+      port: 8080
+
+---
+# Service Account for the application
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: inventario-pymes-sa
+  namespace: inventario-pymes
+  labels:
+    app.kubernetes.io/name: inventario-pymes
+    app.kubernetes.io/component: service-account
+  annotations:
+    description: "Service account for Inventario PYMES application"
+automountServiceAccountToken: true
+
+---
+# Role for the service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: inventario-pymes-role
+  namespace: inventario-pymes
+  labels:
+    app.kubernetes.io/name: inventario-pymes
+    app.kubernetes.io/component: role
+rules:
+# Allow reading pods for health checks
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+  
+# Allow reading services for service discovery
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "list", "watch"]
+  
+# Allow reading configmaps and secrets
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+  
+# Allow creating events for logging
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create", "patch"]
+
+---
+# Role binding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: inventario-pymes-rolebinding
+  namespace: inventario-pymes
+  labels:
+    app.kubernetes.io/name: inventario-pymes
+    app.kubernetes.io/component: role-binding
+subjects:
+- kind: ServiceAccount
+  name: inventario-pymes-sa
+  namespace: inventario-pymes
+roleRef:
+  kind: Role
+  name: inventario-pymes-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Pod Security Policy (if enabled in cluster)
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: inventario-pymes-psp
+  namespace: inventario-pymes
+  labels:
+    app.kubernetes.io/name: inventario-pymes
+    app.kubernetes.io/component: pod-security-policy
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  seLinux:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'

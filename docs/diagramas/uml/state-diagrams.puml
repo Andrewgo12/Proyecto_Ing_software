@@ -1,0 +1,222 @@
+@startuml Sistema_Inventario_PYMES_State_Diagrams
+
+!theme plain
+skinparam backgroundColor #FFFFFF
+
+title Sistema de Inventario PYMES - Diagramas de Estado
+
+' ==================== PRODUCT STATE DIAGRAM ====================
+
+@startuml Product_State_Diagram
+title Estados del Producto
+
+[*] --> Draft : Crear producto
+Draft --> Active : Activar producto
+Active --> Inactive : Desactivar
+Inactive --> Active : Reactivar
+Active --> Discontinued : Descontinuar
+Discontinued --> [*] : Eliminar (soft delete)
+
+Draft : Producto en borrador
+Draft : - No visible en inventario
+Draft : - Puede editarse libremente
+
+Active : Producto activo
+Active : - Visible en inventario
+Active : - Permite movimientos
+Active : - Genera alertas
+
+Inactive : Producto inactivo
+Inactive : - No visible en inventario
+Inactive : - No permite movimientos
+Inactive : - Mantiene historial
+
+Discontinued : Producto descontinuado
+Discontinued : - No permite nuevas entradas
+Discontinued : - Solo salidas para agotar stock
+Discontinued : - Marcado para eliminación
+
+@enduml
+
+' ==================== INVENTORY MOVEMENT STATE DIAGRAM ====================
+
+@startuml Movement_State_Diagram
+title Estados del Movimiento de Inventario
+
+[*] --> Pending : Crear movimiento
+Pending --> Processing : Iniciar procesamiento
+Processing --> Completed : Procesar exitosamente
+Processing --> Failed : Error en procesamiento
+Failed --> Pending : Reintentar
+Completed --> Reversed : Reversar movimiento
+Reversed --> [*] : Finalizar
+
+Pending : Movimiento pendiente
+Pending : - Esperando procesamiento
+Pending : - Puede cancelarse
+Pending : - No afecta stock
+
+Processing : Procesando
+Processing : - Validando datos
+Processing : - Actualizando stock
+Processing : - No puede cancelarse
+
+Completed : Completado
+Completed : - Stock actualizado
+Completed : - Auditoría registrada
+Completed : - Puede reversarse
+
+Failed : Fallido
+Failed : - Error en procesamiento
+Failed : - Stock no afectado
+Failed : - Requiere intervención
+
+Reversed : Reversado
+Reversed : - Movimiento anulado
+Reversed : - Stock restaurado
+Reversed : - Auditoría completa
+
+@enduml
+
+' ==================== ALERT STATE DIAGRAM ====================
+
+@startuml Alert_State_Diagram
+title Estados de las Alertas
+
+[*] --> Active : Generar alerta
+Active --> Acknowledged : Reconocer
+Acknowledged --> Resolved : Resolver problema
+Acknowledged --> Escalated : Escalar por tiempo
+Escalated --> Resolved : Resolver problema
+Resolved --> [*] : Cerrar alerta
+Active --> Dismissed : Descartar
+Dismissed --> [*] : Cerrar alerta
+
+Active : Alerta activa
+Active : - Requiere atención
+Active : - Enviando notificaciones
+Active : - Visible en dashboard
+
+Acknowledged : Reconocida
+Acknowledged : - Usuario notificado
+Acknowledged : - En proceso de resolución
+Acknowledged : - Timer de escalamiento
+
+Escalated : Escalada
+Escalated : - Tiempo límite excedido
+Escalated : - Notificación a supervisores
+Escalated : - Prioridad alta
+
+Resolved : Resuelta
+Resolved : - Problema solucionado
+Resolved : - Stock normalizado
+Resolved : - Auditoría completa
+
+Dismissed : Descartada
+Dismissed : - Falsa alarma
+Dismissed : - No requiere acción
+Dismissed : - Registrada para análisis
+
+@enduml
+
+' ==================== USER SESSION STATE DIAGRAM ====================
+
+@startuml Session_State_Diagram
+title Estados de la Sesión de Usuario
+
+[*] --> Unauthenticated : Iniciar
+Unauthenticated --> Authenticating : Enviar credenciales
+Authenticating --> Authenticated : Login exitoso
+Authenticating --> Unauthenticated : Login fallido
+Authenticated --> Active : Actividad detectada
+Active --> Idle : Sin actividad
+Idle --> Active : Actividad detectada
+Idle --> Expired : Timeout
+Active --> Expired : Timeout manual
+Expired --> [*] : Cerrar sesión
+Authenticated --> [*] : Logout
+
+Unauthenticated : Sin autenticar
+Unauthenticated : - Sin acceso al sistema
+Unauthenticated : - Puede intentar login
+
+Authenticating : Autenticando
+Authenticating : - Validando credenciales
+Authenticating : - Verificando MFA
+Authenticating : - Generando tokens
+
+Authenticated : Autenticado
+Authenticated : - Acceso autorizado
+Authenticated : - Tokens válidos
+Authenticated : - Sesión iniciada
+
+Active : Sesión activa
+Active : - Usuario interactuando
+Active : - Tokens renovándose
+Active : - Actividad registrada
+
+Idle : Sesión inactiva
+Idle : - Sin actividad reciente
+Idle : - Advertencia de timeout
+Idle : - Tokens próximos a expirar
+
+Expired : Sesión expirada
+Expired : - Tokens inválidos
+Expired : - Requiere re-autenticación
+Expired : - Datos de sesión limpiados
+
+@enduml
+
+' ==================== ORDER/REPORT STATE DIAGRAM ====================
+
+@startuml Report_State_Diagram
+title Estados del Reporte
+
+[*] --> Requested : Solicitar reporte
+Requested --> Queued : Agregar a cola
+Queued --> Generating : Iniciar generación
+Generating --> Completed : Generación exitosa
+Generating --> Failed : Error en generación
+Failed --> Queued : Reintentar
+Completed --> Downloaded : Descargar archivo
+Downloaded --> Expired : Tiempo de expiración
+Expired --> [*] : Eliminar archivo
+
+Requested : Solicitado
+Requested : - Parámetros validados
+Requested : - Esperando recursos
+Requested : - Puede cancelarse
+
+Queued : En cola
+Queued : - Esperando procesamiento
+Queued : - Posición en cola asignada
+Queued : - Estimación de tiempo
+
+Generating : Generando
+Generating : - Ejecutando consultas
+Generating : - Procesando datos
+Generating : - Creando archivo
+
+Completed : Completado
+Completed : - Archivo disponible
+Completed : - Enlace de descarga
+Completed : - Notificación enviada
+
+Failed : Fallido
+Failed : - Error en generación
+Failed : - Log de errores
+Failed : - Notificación de fallo
+
+Downloaded : Descargado
+Downloaded : - Usuario accedió al archivo
+Downloaded : - Contador de descargas
+Downloaded : - Tiempo de expiración activo
+
+Expired : Expirado
+Expired : - Archivo eliminado
+Expired : - Enlaces inválidos
+Expired : - Requiere regeneración
+
+@enduml
+
+@enduml

@@ -1,0 +1,122 @@
+# Sistema de Inventario PYMES - Arquitectura del Sistema
+
+## Diagrama de Arquitectura (Draw.io XML)
+
+```xml
+<mxfile host="app.diagrams.net">
+  <diagram name="System Architecture">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <!-- Frontend Layer -->
+        <mxCell id="frontend" value="Frontend Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="50" y="50" width="200" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="web-app" value="React Web App" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="130" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="mobile-app" value="React Native App" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="170" y="130" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- API Gateway -->
+        <mxCell id="api-gateway" value="API Gateway&#xa;(Load Balancer)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="100" y="220" width="120" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- Backend Services -->
+        <mxCell id="backend" value="Backend Services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="50" y="320" width="200" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="auth-service" value="Auth Service" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="400" width="70" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="inventory-service" value="Inventory Service" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="400" width="70" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="report-service" value="Report Service" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="210" y="400" width="70" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- Data Layer -->
+        <mxCell id="data-layer" value="Data Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="50" y="500" width="200" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="postgresql" value="PostgreSQL&#xa;(Primary DB)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="580" width="80" height="50" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="redis" value="Redis&#xa;(Cache)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="170" y="580" width="80" height="50" as="geometry"/>
+        </mxCell>
+        
+        <!-- External Services -->
+        <mxCell id="external" value="External Services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="350" y="320" width="150" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="email-service" value="Email Service" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="330" y="400" width="70" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="file-storage" value="File Storage&#xa;(AWS S3)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="400" width="70" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- Connections -->
+        <mxCell id="conn1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="web-app" target="api-gateway">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="mobile-app" target="api-gateway">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="api-gateway" target="backend">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="backend" target="data-layer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="backend" target="external">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+```
+
+## Componentes Principales
+
+### Frontend Layer
+- **React Web App:** Interfaz web responsive
+- **React Native App:** Aplicación móvil multiplataforma
+
+### API Gateway
+- **Load Balancer:** Distribución de carga
+- **Rate Limiting:** Control de velocidad
+- **Authentication:** Validación de tokens
+
+### Backend Services
+- **Auth Service:** Autenticación y autorización
+- **Inventory Service:** Lógica de inventario
+- **Report Service:** Generación de reportes
+
+### Data Layer
+- **PostgreSQL:** Base de datos principal
+- **Redis:** Cache y sesiones
+
+### External Services
+- **Email Service:** Notificaciones
+- **File Storage:** Almacenamiento de archivos

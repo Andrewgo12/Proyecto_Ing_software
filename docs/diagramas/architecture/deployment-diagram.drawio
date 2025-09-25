@@ -1,0 +1,187 @@
+# Sistema de Inventario PYMES - Diagrama de Despliegue
+
+## Deployment Architecture Diagram (Draw.io XML)
+
+```xml
+<mxfile host="app.diagrams.net">
+  <diagram name="Deployment Architecture">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <!-- Kubernetes Cluster -->
+        <mxCell id="k8s-cluster" value="Kubernetes Cluster (EKS)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="50" width="700" height="500" as="geometry"/>
+        </mxCell>
+        
+        <!-- Namespace -->
+        <mxCell id="namespace" value="Namespace: inventario-pymes" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="100" width="640" height="420" as="geometry"/>
+        </mxCell>
+        
+        <!-- Frontend Deployment -->
+        <mxCell id="frontend-deploy" value="Frontend Deployment" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="120" y="140" width="150" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="frontend-pod1" value="Frontend Pod 1&#xa;(React App)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="130" y="220" width="60" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="frontend-pod2" value="Frontend Pod 2&#xa;(React App)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="220" width="60" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- Backend Deployment -->
+        <mxCell id="backend-deploy" value="Backend Deployment" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="320" y="140" width="150" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="backend-pod1" value="Backend Pod 1&#xa;(Node.js API)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="330" y="220" width="60" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="backend-pod2" value="Backend Pod 2&#xa;(Node.js API)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="220" width="60" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="backend-pod3" value="Backend Pod 3&#xa;(Node.js API)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="470" y="220" width="60" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- Database StatefulSet -->
+        <mxCell id="db-statefulset" value="Database StatefulSet" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="550" y="140" width="150" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="postgres-pod" value="PostgreSQL Pod&#xa;(Primary)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="580" y="220" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- Redis Deployment -->
+        <mxCell id="redis-deploy" value="Redis Deployment" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad7ac;strokeColor=#b46504;" vertex="1" parent="1">
+          <mxGeometry x="120" y="300" width="150" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="redis-pod" value="Redis Pod&#xa;(Cache)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="380" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- Services -->
+        <mxCell id="frontend-svc" value="Frontend Service&#xa;(ClusterIP)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="120" y="450" width="100" height="50" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="backend-svc" value="Backend Service&#xa;(ClusterIP)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="320" y="450" width="100" height="50" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="db-svc" value="Database Service&#xa;(ClusterIP)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="550" y="450" width="100" height="50" as="geometry"/>
+        </mxCell>
+        
+        <!-- Ingress -->
+        <mxCell id="ingress" value="Ingress Controller&#xa;(NGINX)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="320" y="580" width="150" height="50" as="geometry"/>
+        </mxCell>
+        
+        <!-- External Services -->
+        <mxCell id="external-services" value="External Services" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d0cee2;strokeColor=#56517e;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="680" width="700" height="100" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rds" value="Amazon RDS&#xa;(PostgreSQL)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="710" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="elasticache" value="ElastiCache&#xa;(Redis)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="710" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="s3" value="Amazon S3&#xa;(File Storage)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="710" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="ses" value="Amazon SES&#xa;(Email Service)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="550" y="710" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- Monitoring -->
+        <mxCell id="monitoring-stack" value="Monitoring Stack" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffcccc;strokeColor=#ff6666;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="820" width="700" height="80" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="prometheus" value="Prometheus" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="840" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="grafana" value="Grafana" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="840" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="elasticsearch" value="Elasticsearch" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="840" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="kibana" value="Kibana" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="840" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="jaeger" value="Jaeger" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="840" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- Connections -->
+        <mxCell id="conn1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="ingress" target="frontend-svc">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="ingress" target="backend-svc">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="backend-svc" target="db-svc">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+```
+
+## Componentes de Despliegue
+
+### Kubernetes Cluster (EKS)
+- **Namespace:** inventario-pymes
+- **Auto-scaling:** Habilitado
+- **Multi-AZ:** Alta disponibilidad
+
+### Application Deployments
+- **Frontend:** 2 réplicas (React)
+- **Backend:** 3 réplicas (Node.js)
+- **Database:** StatefulSet (PostgreSQL)
+- **Cache:** 1 réplica (Redis)
+
+### Services & Networking
+- **ClusterIP Services:** Comunicación interna
+- **Ingress Controller:** NGINX para routing
+- **Load Balancer:** AWS ALB
+
+### External Services
+- **Amazon RDS:** Base de datos gestionada
+- **ElastiCache:** Cache gestionado
+- **Amazon S3:** Almacenamiento de archivos
+- **Amazon SES:** Servicio de email
+
+### Monitoring & Observability
+- **Prometheus:** Métricas
+- **Grafana:** Dashboards
+- **ELK Stack:** Logs centralizados
+- **Jaeger:** Distributed tracing
+
+### Deployment Strategy
+- **Rolling Updates:** Zero-downtime deployments
+- **Health Checks:** Liveness y readiness probes
+- **Resource Limits:** CPU y memoria definidos
+- **Persistent Volumes:** Para datos stateful

@@ -1,0 +1,259 @@
+# Sistema de Inventario PYMES - Árboles de Decisión
+
+## Decision Tree Diagrams (Draw.io XML)
+
+```xml
+<mxfile host="app.diagrams.net">
+  <diagram name="Decision Trees">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <!-- Stock Alert Decision Tree -->
+        <mxCell id="alert-title" value="Stock Alert Decision Tree" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="50" y="20" width="200" height="30" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="check-stock" value="Check Current&#xa;Stock Level" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="150" y="70" width="100" height="50" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="stock-level" value="Stock Level?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="150" y="160" width="100" height="80" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="zero-stock" value="Stock = 0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="50" y="280" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="low-stock" value="Stock ≤ Min" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="160" y="280" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="normal-stock" value="Stock > Min" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="270" y="280" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="critical-alert" value="CRITICAL ALERT&#xa;• Immediate notification&#xa;• Block sales&#xa;• Emergency reorder" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="20" y="360" width="140" height="80" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="warning-alert" value="WARNING ALERT&#xa;• Notify managers&#xa;• Create purchase order&#xa;• Monitor closely" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="180" y="360" width="140" height="80" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="no-alert" value="NO ALERT&#xa;• Continue normal ops&#xa;• Regular monitoring" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="340" y="360" width="120" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- User Access Decision Tree -->
+        <mxCell id="access-title" value="User Access Decision Tree" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="550" y="20" width="200" height="30" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="user-login" value="User Attempts&#xa;Login" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="600" y="70" width="100" height="50" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="user-exists" value="User Exists?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="600" y="160" width="100" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="user-active" value="User Active?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="500" y="260" width="100" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="password-valid" value="Password&#xa;Valid?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="400" y="360" width="100" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="mfa-enabled" value="MFA&#xa;Enabled?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="300" y="460" width="100" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="grant-access" value="GRANT ACCESS&#xa;• Create session&#xa;• Log successful login&#xa;• Redirect to dashboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="180" y="560" width="140" height="80" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="require-mfa" value="REQUIRE MFA&#xa;• Send MFA code&#xa;• Wait for verification&#xa;• Temporary session" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="340" y="560" width="140" height="80" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="deny-access" value="DENY ACCESS&#xa;• Log failed attempt&#xa;• Show error message&#xa;• Increment fail counter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="500" y="560" width="140" height="80" as="geometry"/>
+        </mxCell>
+        
+        <!-- Purchase Decision Tree -->
+        <mxCell id="purchase-title" value="Purchase Decision Tree" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="50" y="500" width="200" height="30" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="purchase-request" value="Purchase Request&#xa;Received" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="100" y="550" width="100" height="50" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="budget-check" value="Budget&#xa;Available?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="100" y="640" width="100" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="amount-check" value="Amount > $1000?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="50" y="740" width="100" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="supplier-check" value="Approved&#xa;Supplier?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="200" y="740" width="100" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="auto-approve" value="AUTO APPROVE&#xa;• Create PO&#xa;• Send to supplier&#xa;• Update budget" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="20" y="840" width="120" height="80" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="require-approval" value="REQUIRE APPROVAL&#xa;• Send to manager&#xa;• Hold PO creation&#xa;• Notify requester" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="160" y="840" width="120" height="80" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="reject-purchase" value="REJECT PURCHASE&#xa;• Insufficient budget&#xa;• Log rejection&#xa;• Notify requester" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="300" y="840" width="120" height="80" as="geometry"/>
+        </mxCell>
+        
+        <!-- Connections for Stock Alert Tree -->
+        <mxCell id="conn1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="check-stock" target="stock-level">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="stock-level" target="zero-stock">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="stock-level" target="low-stock">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="stock-level" target="normal-stock">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="zero-stock" target="critical-alert">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="low-stock" target="warning-alert">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="normal-stock" target="no-alert">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- Connections for User Access Tree -->
+        <mxCell id="conn8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="user-login" target="user-exists">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="user-exists" target="user-active">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="user-active" target="password-valid">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="password-valid" target="mfa-enabled">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="mfa-enabled" target="grant-access">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="mfa-enabled" target="require-mfa">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- Labels -->
+        <mxCell id="label1" value="= 0" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="100" y="250" width="30" height="20" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="label2" value="≤ Min" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="200" y="250" width="30" height="20" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="label3" value="> Min" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="300" y="250" width="30" height="20" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="label4" value="Yes" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="570" y="240" width="30" height="20" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="label5" value="No" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="720" y="190" width="30" height="20" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+```
+
+## Árboles de Decisión Principales
+
+### 1. Stock Alert Decision Tree
+**Propósito:** Determinar el tipo de alerta según nivel de stock
+
+**Decisiones:**
+- **Stock = 0:** Alerta crítica
+  - Notificación inmediata
+  - Bloquear ventas
+  - Reorden de emergencia
+
+- **Stock ≤ Mínimo:** Alerta de advertencia
+  - Notificar gerentes
+  - Crear orden de compra
+  - Monitoreo cercano
+
+- **Stock > Mínimo:** Sin alerta
+  - Operaciones normales
+  - Monitoreo regular
+
+### 2. User Access Decision Tree
+**Propósito:** Determinar acceso del usuario al sistema
+
+**Flujo de Decisiones:**
+1. **¿Usuario existe?** → No: Denegar acceso
+2. **¿Usuario activo?** → No: Denegar acceso
+3. **¿Contraseña válida?** → No: Denegar acceso
+4. **¿MFA habilitado?** 
+   - Sí: Requerir MFA
+   - No: Conceder acceso
+
+**Resultados:**
+- **Conceder Acceso:** Crear sesión, redirigir
+- **Requerir MFA:** Enviar código, sesión temporal
+- **Denegar Acceso:** Log intento, mostrar error
+
+### 3. Purchase Decision Tree
+**Propósito:** Automatizar aprobación de órdenes de compra
+
+**Criterios de Decisión:**
+1. **¿Presupuesto disponible?** → No: Rechazar
+2. **¿Monto > $1000?** → Sí: Requiere aprobación
+3. **¿Proveedor aprobado?** → No: Requiere aprobación
+
+**Resultados:**
+- **Auto-aprobar:** Crear PO automáticamente
+- **Requiere Aprobación:** Enviar a gerente
+- **Rechazar:** Presupuesto insuficiente
+
+### Beneficios de los Árboles de Decisión
+- **Automatización:** Decisiones consistentes
+- **Transparencia:** Lógica clara y auditable
+- **Eficiencia:** Reducción de intervención manual
+- **Escalabilidad:** Fácil modificación de reglas
+
+### Implementación en Sistema
+- **Reglas de negocio** configurables
+- **Logs de decisiones** para auditoría
+- **Notificaciones automáticas** según resultado
+- **Excepciones manuales** cuando sea necesario

@@ -1,0 +1,255 @@
+# Sistema de Inventario PYMES - Procesos de Negocio
+
+## Business Process Diagrams (Draw.io XML)
+
+```xml
+<mxfile host="app.diagrams.net">
+  <diagram name="Business Processes">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <!-- Purchase Process -->
+        <mxCell id="purchase-title" value="Purchase Process" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="50" y="20" width="150" height="30" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="low-stock-alert" value="Low Stock Alert" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="50" y="60" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="review-stock" value="Review Stock&#xa;Levels" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="60" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="create-po" value="Create Purchase&#xa;Order" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="60" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="send-supplier" value="Send to&#xa;Supplier" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="60" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="receive-goods" value="Receive Goods" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="650" y="60" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="update-inventory" value="Update&#xa;Inventory" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="650" y="140" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- Sales Process -->
+        <mxCell id="sales-title" value="Sales Process" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="50" y="220" width="150" height="30" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="customer-order" value="Customer Order" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="50" y="260" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="check-availability" value="Check Stock&#xa;Availability" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="260" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="stock-decision" value="Stock&#xa;Available?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="350" y="250" width="100" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="reserve-stock" value="Reserve Stock" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="260" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="process-sale" value="Process Sale" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="650" y="260" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="backorder" value="Create&#xa;Backorder" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="350" y="360" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="update-stock-out" value="Update Stock&#xa;(Outbound)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="650" y="340" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- Stock Transfer Process -->
+        <mxCell id="transfer-title" value="Stock Transfer Process" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="50" y="440" width="180" height="30" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="transfer-request" value="Transfer Request" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="50" y="480" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="check-source" value="Check Source&#xa;Stock" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="480" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="approve-transfer" value="Approve&#xa;Transfer" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="480" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="prepare-shipment" value="Prepare&#xa;Shipment" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="480" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="ship-goods" value="Ship Goods" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="650" y="480" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="receive-transfer" value="Receive at&#xa;Destination" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="650" y="560" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="update-both" value="Update Both&#xa;Locations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="500" y="560" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- Cycle Count Process -->
+        <mxCell id="cycle-title" value="Cycle Count Process" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="50" y="640" width="180" height="30" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="schedule-count" value="Schedule&#xa;Cycle Count" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad7ac;strokeColor=#b46504;" vertex="1" parent="1">
+          <mxGeometry x="50" y="680" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="assign-counter" value="Assign to&#xa;Counter" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="680" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="physical-count" value="Perform&#xa;Physical Count" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="680" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="compare-system" value="Compare with&#xa;System Count" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="680" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="variance-check" value="Variance?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="650" y="670" width="100" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="investigate" value="Investigate&#xa;Variance" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="650" y="780" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="adjust-inventory" value="Adjust&#xa;Inventory" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="500" y="780" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="complete-count" value="Complete&#xa;Count" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="350" y="780" width="100" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- Connections -->
+        <mxCell id="conn1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="low-stock-alert" target="review-stock">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="review-stock" target="create-po">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="create-po" target="send-supplier">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="send-supplier" target="receive-goods">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="receive-goods" target="update-inventory">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- Sales Process Connections -->
+        <mxCell id="conn6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="customer-order" target="check-availability">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="check-availability" target="stock-decision">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="stock-decision" target="reserve-stock">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="stock-decision" target="backorder">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="reserve-stock" target="process-sale">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="process-sale" target="update-stock-out">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- Labels -->
+        <mxCell id="yes-label" value="Yes" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="450" y="240" width="30" height="20" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="no-label" value="No" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="400" y="320" width="30" height="20" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+```
+
+## Procesos de Negocio Principales
+
+### 1. Purchase Process (Proceso de Compras)
+**Trigger:** Alerta de stock bajo
+**Pasos:**
+1. Revisar niveles de stock
+2. Crear orden de compra
+3. Enviar a proveedor
+4. Recibir mercancía
+5. Actualizar inventario
+
+### 2. Sales Process (Proceso de Ventas)
+**Trigger:** Orden del cliente
+**Pasos:**
+1. Verificar disponibilidad de stock
+2. Si disponible → Reservar stock → Procesar venta
+3. Si no disponible → Crear backorder
+4. Actualizar stock (salida)
+
+### 3. Stock Transfer Process (Proceso de Transferencias)
+**Trigger:** Solicitud de transferencia
+**Pasos:**
+1. Verificar stock en origen
+2. Aprobar transferencia
+3. Preparar envío
+4. Transportar mercancía
+5. Recibir en destino
+6. Actualizar ambas ubicaciones
+
+### 4. Cycle Count Process (Proceso de Conteo Cíclico)
+**Trigger:** Programación automática
+**Pasos:**
+1. Programar conteo cíclico
+2. Asignar contador
+3. Realizar conteo físico
+4. Comparar con sistema
+5. Si hay varianza → Investigar → Ajustar
+6. Si no hay varianza → Completar conteo
+
+### Roles Involucrados
+- **Warehouse Manager:** Aprobaciones y supervisión
+- **Warehouse Staff:** Conteos y movimientos físicos
+- **Purchasing:** Órdenes de compra
+- **Sales:** Procesamiento de ventas
+- **System:** Alertas automáticas y actualizaciones
+
+### Puntos de Control
+- **Validación de stock** antes de ventas
+- **Aprobación** para transferencias grandes
+- **Investigación** de varianzas en conteos
+- **Alertas automáticas** para reabastecimiento

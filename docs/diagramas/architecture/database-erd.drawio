@@ -1,0 +1,109 @@
+# Sistema de Inventario PYMES - Diagrama ERD
+
+## Entity Relationship Diagram (Draw.io XML)
+
+```xml
+<mxfile host="app.diagrams.net">
+  <diagram name="Database ERD">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <!-- Users Table -->
+        <mxCell id="users" value="users&#xa;&#xa;id (PK)&#xa;email&#xa;password_hash&#xa;first_name&#xa;last_name&#xa;role&#xa;is_active&#xa;created_at&#xa;updated_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="50" y="50" width="120" height="160" as="geometry"/>
+        </mxCell>
+        
+        <!-- Products Table -->
+        <mxCell id="products" value="products&#xa;&#xa;id (PK)&#xa;sku&#xa;name&#xa;description&#xa;unit_price&#xa;cost_price&#xa;category_id (FK)&#xa;is_active&#xa;created_at&#xa;updated_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="250" y="50" width="120" height="180" as="geometry"/>
+        </mxCell>
+        
+        <!-- Categories Table -->
+        <mxCell id="categories" value="categories&#xa;&#xa;id (PK)&#xa;name&#xa;slug&#xa;parent_id (FK)&#xa;level&#xa;is_active&#xa;created_at&#xa;updated_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="450" y="50" width="120" height="140" as="geometry"/>
+        </mxCell>
+        
+        <!-- Locations Table -->
+        <mxCell id="locations" value="locations&#xa;&#xa;id (PK)&#xa;code&#xa;name&#xa;type&#xa;address&#xa;manager_id (FK)&#xa;is_active&#xa;created_at&#xa;updated_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="50" y="280" width="120" height="160" as="geometry"/>
+        </mxCell>
+        
+        <!-- Stock Levels Table -->
+        <mxCell id="stock_levels" value="stock_levels&#xa;&#xa;id (PK)&#xa;product_id (FK)&#xa;location_id (FK)&#xa;quantity&#xa;min_stock&#xa;max_stock&#xa;reorder_point&#xa;updated_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="250" y="280" width="120" height="140" as="geometry"/>
+        </mxCell>
+        
+        <!-- Inventory Movements Table -->
+        <mxCell id="movements" value="inventory_movements&#xa;&#xa;id (PK)&#xa;product_id (FK)&#xa;location_id (FK)&#xa;movement_type&#xa;quantity&#xa;unit_cost&#xa;reference_id&#xa;user_id (FK)&#xa;created_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fad7ac;strokeColor=#b46504;" vertex="1" parent="1">
+          <mxGeometry x="450" y="280" width="140" height="160" as="geometry"/>
+        </mxCell>
+        
+        <!-- Suppliers Table -->
+        <mxCell id="suppliers" value="suppliers&#xa;&#xa;id (PK)&#xa;supplier_code&#xa;company_name&#xa;contact_name&#xa;contact_email&#xa;contact_phone&#xa;is_active&#xa;created_at&#xa;updated_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d0cee2;strokeColor=#56517e;" vertex="1" parent="1">
+          <mxGeometry x="50" y="500" width="120" height="160" as="geometry"/>
+        </mxCell>
+        
+        <!-- Alerts Table -->
+        <mxCell id="alerts" value="alerts&#xa;&#xa;id (PK)&#xa;alert_type&#xa;product_id (FK)&#xa;location_id (FK)&#xa;severity&#xa;status&#xa;message&#xa;created_at&#xa;resolved_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffcccc;strokeColor=#ff6666;" vertex="1" parent="1">
+          <mxGeometry x="250" y="500" width="120" height="160" as="geometry"/>
+        </mxCell>
+        
+        <!-- Relationships -->
+        <mxCell id="rel1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;startArrow=ERone;" edge="1" parent="1" source="categories" target="products">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;startArrow=ERone;" edge="1" parent="1" source="products" target="stock_levels">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;startArrow=ERone;" edge="1" parent="1" source="locations" target="stock_levels">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;startArrow=ERone;" edge="1" parent="1" source="products" target="movements">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;startArrow=ERone;" edge="1" parent="1" source="users" target="movements">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;startArrow=ERone;" edge="1" parent="1" source="products" target="alerts">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;startArrow=ERone;" edge="1" parent="1" source="locations" target="alerts">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+```
+
+## Relaciones Principales
+
+### Core Entities
+- **Users:** Usuarios del sistema
+- **Products:** Catálogo de productos
+- **Categories:** Categorización jerárquica
+- **Locations:** Ubicaciones/Almacenes
+
+### Inventory Management
+- **Stock Levels:** Niveles de stock por ubicación
+- **Inventory Movements:** Historial de movimientos
+- **Alerts:** Sistema de alertas automáticas
+
+### Support Entities
+- **Suppliers:** Proveedores
+- **Audit Logs:** Trazabilidad (no mostrado)
+
+### Key Relationships
+- Products → Categories (Many-to-One)
+- Products → Stock Levels (One-to-Many)
+- Locations → Stock Levels (One-to-Many)
+- Products → Movements (One-to-Many)
+- Users → Movements (One-to-Many)

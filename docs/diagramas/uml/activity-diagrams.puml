@@ -1,0 +1,235 @@
+@startuml Sistema_Inventario_PYMES_Activity_Diagrams
+
+!theme plain
+skinparam backgroundColor #FFFFFF
+
+title Sistema de Inventario PYMES - Diagramas de Actividad
+
+' ==================== PRODUCT CREATION FLOW ====================
+
+@startuml Product_Creation_Activity
+title Proceso de Creación de Producto
+
+start
+:Usuario accede a "Nuevo Producto";
+:Completar formulario;
+
+if (Datos válidos?) then (no)
+  :Mostrar errores de validación;
+  stop
+else (sí)
+  :Validar SKU único;
+  if (SKU existe?) then (sí)
+    :Mostrar error "SKU duplicado";
+    stop
+  else (no)
+    :Crear producto en BD;
+    :Inicializar stock en ubicaciones;
+    :Registrar auditoría;
+    :Enviar notificación;
+    :Mostrar confirmación;
+    stop
+  endif
+endif
+
+@enduml
+
+' ==================== INVENTORY MOVEMENT FLOW ====================
+
+@startuml Inventory_Movement_Activity
+title Proceso de Movimiento de Inventario
+
+start
+:Usuario selecciona tipo de movimiento;
+
+if (Tipo de movimiento) then (Entrada)
+  :Seleccionar producto y ubicación;
+  :Ingresar cantidad;
+  :Registrar entrada;
+  :Actualizar stock;
+  :Generar comprobante;
+  stop
+  
+elseif (Salida) then
+  :Seleccionar producto y ubicación;
+  :Verificar stock disponible;
+  
+  if (Stock suficiente?) then (no)
+    :Mostrar error de stock;
+    stop
+  else (sí)
+    :Ingresar cantidad;
+    :Registrar salida;
+    :Actualizar stock;
+    
+    if (Stock bajo umbral?) then (sí)
+      :Generar alerta de stock bajo;
+    endif
+    
+    :Generar comprobante;
+    stop
+  endif
+  
+elseif (Transferencia) then
+  :Seleccionar ubicación origen;
+  :Verificar stock disponible;
+  
+  if (Stock suficiente?) then (no)
+    :Mostrar error de stock;
+    stop
+  else (sí)
+    :Seleccionar ubicación destino;
+    :Ingresar cantidad;
+    :Registrar transferencia;
+    :Actualizar stock origen (-);
+    :Actualizar stock destino (+);
+    :Generar comprobante;
+    stop
+  endif
+endif
+
+@enduml
+
+' ==================== ALERT PROCESSING FLOW ====================
+
+@startuml Alert_Processing_Activity
+title Proceso de Procesamiento de Alertas
+
+start
+:Sistema ejecuta verificación automática;
+:Obtener lista de productos activos;
+
+repeat
+  :Verificar niveles de stock por ubicación;
+  
+  if (Stock <= Mínimo?) then (sí)
+    if (Alerta ya existe?) then (no)
+      :Crear alerta de stock bajo;
+      :Enviar notificación;
+    endif
+  elseif (Stock = 0?) then (sí)
+    if (Alerta ya existe?) then (no)
+      :Crear alerta de stock agotado;
+      :Enviar notificación urgente;
+    endif
+  elseif (Stock >= Máximo?) then (sí)
+    if (Alerta ya existe?) then (no)
+      :Crear alerta de sobrestock;
+      :Enviar notificación;
+    endif
+  else (normal)
+    :Resolver alertas existentes;
+  endif
+  
+repeat while (¿Más productos?) is (sí)
+-> no;
+
+:Actualizar log de procesamiento;
+stop
+
+@enduml
+
+' ==================== REPORT GENERATION FLOW ====================
+
+@startuml Report_Generation_Activity
+title Proceso de Generación de Reportes
+
+start
+:Usuario solicita reporte;
+:Seleccionar tipo de reporte;
+:Configurar parámetros;
+
+if (Parámetros válidos?) then (no)
+  :Mostrar errores;
+  stop
+else (sí)
+  :Construir consulta SQL;
+  :Ejecutar consulta;
+  
+  if (Datos encontrados?) then (no)
+    :Mostrar "Sin datos";
+    stop
+  else (sí)
+    :Procesar datos;
+    
+    if (Formato requerido) then (PDF)
+      :Generar PDF;
+    elseif (Excel) then
+      :Generar Excel;
+    elseif (CSV) then
+      :Generar CSV;
+    endif
+    
+    :Guardar archivo;
+    
+    if (Envío por email?) then (sí)
+      :Enviar por email;
+    endif
+    
+    :Mostrar enlace de descarga;
+    stop
+  endif
+endif
+
+@enduml
+
+' ==================== USER AUTHENTICATION FLOW ====================
+
+@startuml User_Authentication_Activity
+title Proceso de Autenticación de Usuario
+
+start
+:Usuario ingresa credenciales;
+
+if (Email válido?) then (no)
+  :Mostrar error de formato;
+  stop
+else (sí)
+  :Verificar usuario en BD;
+  
+  if (Usuario existe?) then (no)
+    :Mostrar error "Usuario no encontrado";
+    stop
+  elseif (Usuario activo?) then (no)
+    :Mostrar error "Cuenta desactivada";
+    stop
+  else (sí)
+    :Verificar contraseña;
+    
+    if (Contraseña correcta?) then (no)
+      :Incrementar intentos fallidos;
+      
+      if (Intentos >= 5?) then (sí)
+        :Bloquear cuenta;
+        :Enviar email de bloqueo;
+        :Mostrar error "Cuenta bloqueada";
+        stop
+      else (no)
+        :Mostrar error "Contraseña incorrecta";
+        stop
+      endif
+    else (sí)
+      :Resetear intentos fallidos;
+      :Generar tokens JWT;
+      :Actualizar último login;
+      :Registrar auditoría;
+      
+      if (MFA habilitado?) then (sí)
+        :Enviar código MFA;
+        :Solicitar código al usuario;
+        
+        if (Código correcto?) then (no)
+          :Mostrar error MFA;
+          stop
+        endif
+      endif
+      
+      :Redirigir a dashboard;
+      stop
+    endif
+  endif
+endif
+
+@enduml
+
+@enduml

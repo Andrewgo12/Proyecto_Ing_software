@@ -1,0 +1,229 @@
+# Sistema de Inventario PYMES - Flujos de Usuario
+
+## User Flow Diagrams (Draw.io XML)
+
+```xml
+<mxfile host="app.diagrams.net">
+  <diagram name="User Flows">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <!-- Login Flow -->
+        <mxCell id="login-title" value="Login Flow" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="50" y="20" width="100" height="30" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="start-login" value="Start" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="50" y="60" width="60" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="login-page" value="Login Page" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="60" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="enter-creds" value="Enter&#xa;Credentials" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="270" y="60" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="validate-creds" value="Validate?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="390" y="50" width="80" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="dashboard" value="Dashboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="510" y="60" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="error-msg" value="Error Message" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="390" y="150" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- Product Creation Flow -->
+        <mxCell id="product-title" value="Product Creation Flow" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="50" y="220" width="150" height="30" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="start-product" value="Start" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="50" y="260" width="60" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="products-page" value="Products Page" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="260" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="new-product" value="New Product&#xa;Button" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="270" y="260" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="product-form" value="Product Form" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="390" y="260" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="fill-form" value="Fill Form" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="510" y="260" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="validate-form" value="Valid Data?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="630" y="250" width="80" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="save-product" value="Save Product" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="750" y="260" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="form-errors" value="Show Errors" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="630" y="350" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- Inventory Movement Flow -->
+        <mxCell id="movement-title" value="Inventory Movement Flow" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="50" y="420" width="180" height="30" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="start-movement" value="Start" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="50" y="460" width="60" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="inventory-page" value="Inventory Page" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="460" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="select-movement" value="Select&#xa;Movement Type" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="270" y="460" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="movement-type" value="Type?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="390" y="450" width="80" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="entry-form" value="Entry Form" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="510" y="420" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="exit-form" value="Exit Form" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="510" y="480" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="check-stock" value="Check Stock?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="630" y="470" width="80" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="process-movement" value="Process&#xa;Movement" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="750" y="480" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="stock-error" value="Insufficient&#xa;Stock Error" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="630" y="570" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- Report Generation Flow -->
+        <mxCell id="report-title" value="Report Generation Flow" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="50" y="640" width="180" height="30" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="start-report" value="Start" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="50" y="680" width="60" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="reports-page" value="Reports Page" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="680" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="select-report" value="Select Report&#xa;Type" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="270" y="680" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="config-params" value="Configure&#xa;Parameters" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="390" y="680" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="generate-report" value="Generate&#xa;Report" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="510" y="680" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="processing" value="Processing..." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="630" y="680" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="download-report" value="Download&#xa;Report" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="750" y="680" width="80" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- Connections for Login Flow -->
+        <mxCell id="conn1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="start-login" target="login-page">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="login-page" target="enter-creds">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="enter-creds" target="validate-creds">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="validate-creds" target="dashboard">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="validate-creds" target="error-msg">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- Labels for decision points -->
+        <mxCell id="valid-label" value="Valid" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="470" y="40" width="40" height="20" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="invalid-label" value="Invalid" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="430" y="120" width="40" height="20" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+```
+
+## Flujos de Usuario Principales
+
+### 1. Login Flow
+**Pasos:**
+1. Usuario accede a la página de login
+2. Ingresa email y contraseña
+3. Sistema valida credenciales
+4. Si válidas → Dashboard
+5. Si inválidas → Mensaje de error
+
+### 2. Product Creation Flow
+**Pasos:**
+1. Usuario navega a página de productos
+2. Hace clic en "Nuevo Producto"
+3. Completa formulario de producto
+4. Sistema valida datos
+5. Si válidos → Guarda producto
+6. Si inválidos → Muestra errores
+
+### 3. Inventory Movement Flow
+**Pasos:**
+1. Usuario accede a página de inventario
+2. Selecciona tipo de movimiento (entrada/salida)
+3. Completa formulario correspondiente
+4. Para salidas: verifica stock disponible
+5. Si hay stock → Procesa movimiento
+6. Si no hay stock → Error de stock insuficiente
+
+### 4. Report Generation Flow
+**Pasos:**
+1. Usuario navega a página de reportes
+2. Selecciona tipo de reporte
+3. Configura parámetros (fechas, filtros)
+4. Inicia generación de reporte
+5. Sistema procesa datos
+6. Usuario descarga reporte generado
+
+### Elementos de UX
+- **Estados de carga:** Indicadores de procesamiento
+- **Validación:** Feedback inmediato en formularios
+- **Errores:** Mensajes claros y accionables
+- **Confirmaciones:** Estados de éxito visibles
