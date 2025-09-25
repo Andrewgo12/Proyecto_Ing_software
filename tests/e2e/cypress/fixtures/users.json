@@ -1,0 +1,23 @@
+{
+  "admin": {
+    "email": "admin@test.com",
+    "password": "password123",
+    "role": "admin",
+    "firstName": "Admin",
+    "lastName": "User"
+  },
+  "manager": {
+    "email": "manager@test.com",
+    "password": "password123",
+    "role": "manager",
+    "firstName": "Manager",
+    "lastName": "User"
+  },
+  "warehouse": {
+    "email": "warehouse@test.com",
+    "password": "password123",
+    "role": "warehouse",
+    "firstName": "Warehouse",
+    "lastName": "User"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "sampleProducts": [
+    {
+      "sku": "CAM-001",
+      "name": "Camisa Polo Azul",
+      "category": "Ropa",
+      "price": 45000,
+      "cost": 25000,
+      "barcode": "1234567890123"
+    },
+    {
+      "sku": "PAN-001", 
+      "name": "Pantalón Jean",
+      "category": "Ropa",
+      "price": 85000,
+      "cost": 50000,
+      "barcode": "1234567890124"
+    },
+    {
+      "sku": "ZAP-001",
+      "name": "Zapatos Deportivos",
+      "category": "Calzado", 
+      "price": 120000,
+      "cost": 70000,
+      "barcode": "1234567890125"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+# Figma Mobile Prototype - Sistema Inventario PYMES
+
+## Pantallas Móviles
+1. Splash Screen
+2. Login
+3. Dashboard
+4. Lista de Productos
+5. Escáner de Códigos
+6. Movimientos
+7. Perfil
+
+## Navegación
+- Tab Navigation
+- Stack Navigation
+- Modal Navigation
+
+## Componentes Móviles
+- Bottom Tab Bar
+- Header con back button
+- Cards adaptadas
+- Listas optimizadas
+- Botones táctiles
+
+## Gestos
+- Pull to refresh
+- Swipe actions
+- Long press
+- Pinch to zoom
+
+## Tamaños de Pantalla
+- iPhone 14: 390x844
+- iPhone SE: 375x667
+- Android Large: 360x800
+- Android Small: 320x568

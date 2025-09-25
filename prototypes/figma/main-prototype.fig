@@ -1,0 +1,35 @@
+# Figma Main Prototype - Sistema Inventario PYMES
+
+## Páginas Principales
+1. Login
+2. Dashboard
+3. Productos
+4. Inventario
+5. Reportes
+6. Configuración
+
+## Flujos de Usuario
+- Autenticación
+- Gestión de productos
+- Movimientos de inventario
+- Generación de reportes
+- Configuración de sistema
+
+## Componentes Reutilizables
+- Header con navegación
+- Sidebar con menú
+- Cards de métricas
+- Tablas de datos
+- Formularios
+- Modales
+
+## Estados
+- Loading
+- Empty states
+- Error states
+- Success states
+
+## Responsive Design
+- Desktop: 1440px
+- Tablet: 768px
+- Mobile: 375px

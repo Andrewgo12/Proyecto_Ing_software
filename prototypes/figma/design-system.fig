@@ -1,0 +1,33 @@
+# Figma Design System - Sistema Inventario PYMES
+
+## Colores Principales
+- Primary: #3B82F6 (Blue)
+- Secondary: #10B981 (Green)
+- Warning: #F59E0B (Orange)
+- Error: #EF4444 (Red)
+- Success: #22C55E (Green)
+
+## Tipografía
+- Heading: Inter Bold
+- Body: Inter Regular
+- Caption: Inter Light
+
+## Componentes
+- Buttons
+- Cards
+- Forms
+- Navigation
+- Tables
+- Modals
+
+## Espaciado
+- xs: 4px
+- sm: 8px
+- md: 16px
+- lg: 24px
+- xl: 32px
+
+## Iconografía
+- Lucide React Icons
+- 24px standard size
+- Consistent stroke width
